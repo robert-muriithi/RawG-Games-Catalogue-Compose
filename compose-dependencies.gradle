@@ -24,4 +24,10 @@ dependencies {
     // Splash Screen API
     implementation("androidx.core:core-splashscreen:1.0.1")
 
+    //Paging for Jetpack Compose
+    implementation ("androidx.paging:paging-compose:3.2.1")
+
+    //Room paging
+    implementation ("androidx.room:room-paging:2.6.0")
+
 }

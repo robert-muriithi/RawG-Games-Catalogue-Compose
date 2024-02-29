@@ -6,19 +6,17 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import dev.robert.database.database.GamesDatabase
+import dev.robert.shared.ApiResponse
 import retrofit2.HttpException
 import java.io.IOException
 
-class ApiResponse(
-    val resultDtos: Any
-)
+
 @OptIn(ExperimentalPagingApi::class)
-class RemoteMediatorHelper<T : Any, K : Any>(
+class RemoteMediatorHelper<T : Any>(
     private val appDb: GamesDatabase,
     private val entityClass: Class<T>,
-    private val keyExtractor: suspend (T) -> K,
     private val apiCall: suspend (Int) -> ApiResponse
-) : RemoteMediator<K, T>() {
+) : RemoteMediator<Int, T>() {
 
     private val dao: Any by lazy {
         val daoName = "${entityClass.simpleName}Dao"
@@ -29,7 +27,7 @@ class RemoteMediatorHelper<T : Any, K : Any>(
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<K, T>
+        state: PagingState<Int, T>
     ): MediatorResult {
         return try {
             val page = when (loadType) {
@@ -42,7 +40,8 @@ class RemoteMediatorHelper<T : Any, K : Any>(
                     if (lastItem == null) {
                         1
                     } else {
-                        keyExtractor(lastItem) as Int + 1
+                        val id = entityClass.getDeclaredMethod("getId").invoke(lastItem) as Int
+                        (id / state.config.pageSize) + 1
                     }
                 }
             }

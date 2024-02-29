@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.robert.network.apiservice.GamesApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -50,4 +51,12 @@ object NetworkModule {
     }
 
     const val BASE_URL = "https://api.rawg.io/api/games/"
+
+    @Provides
+    @Singleton
+    fun provideProductApi(
+        retrofit: Retrofit
+    ): GamesApi {
+        return retrofit.create(GamesApi::class.java)
+    }
 }

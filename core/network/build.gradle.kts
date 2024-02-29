@@ -11,9 +11,6 @@ apply {
 apply {
     from("$rootDir/test-dependencies.gradle")
 }
-apply {
-    from("$rootDir/compose-dependencies.gradle")
-}
 android {
     namespace = "dev.robert.network"
     compileSdk = 34
@@ -67,4 +64,10 @@ dependencies {
     // Chucker
     debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
+
+    // ktor
+    implementation ("io.ktor:ktor-client-android:1.5.0")
+    implementation ("io.ktor:ktor-client-serialization:1.5.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+    implementation ("io.ktor:ktor-client-logging-jvm:1.5.0")
 }

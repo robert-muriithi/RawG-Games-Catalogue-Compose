@@ -44,17 +44,13 @@ android {
     kotlin {
         jvmToolchain(11)
     }
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
-    }
 }
 
 dependencies {
     val roomVersion = "2.6.0"
-    implementation("androidx.room:room-runtime:$roomVersion")
+    api("androidx.room:room-runtime:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
+    api("androidx.room:room-ktx:$roomVersion")
+
+    implementation(project(":core:network"))
 }

@@ -8,9 +8,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.robert.database.converters.ProductEntityConverters
-import dev.robert.database.dao.CategoriesDao
-import dev.robert.database.dao.GamesDao
+import dev.robert.database.converters.GameEntityConverters
+import dev.robert.database.dao.GenreEntityDao
+import dev.robert.database.dao.GameDao
 import dev.robert.database.database.GamesDatabase
 import javax.inject.Singleton
 
@@ -26,34 +26,26 @@ object DatabaseModule {
     @Singleton
     fun provideProductsDao(
         database: GamesDatabase,
-    ): GamesDao {
-        return database.gamesDao()
-    }
+    ): GameDao = database.gameEntityDao()
 
     @Provides
     @Singleton
     fun provideCategoriesDao(
         database: GamesDatabase,
-    ): CategoriesDao {
-        return database.categoriesDao()
-    }
+    ): GenreEntityDao = database.genreEntityDao()
 
     @Provides
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-        converters: ProductEntityConverters
-    ): GamesDatabase {
-        return Room.databaseBuilder(
-            context,
-            GamesDatabase::class.java,
-            "games_database",
-        ).addTypeConverter(converters).build()
-    }
+        converters: GameEntityConverters
+    ): GamesDatabase = Room.databaseBuilder(
+        context,
+        GamesDatabase::class.java,
+        "games_database",
+    ).addTypeConverter(converters).build()
 
     @Singleton
     @Provides
-    fun provideProductEntityConverters(gson: Gson): ProductEntityConverters {
-        return ProductEntityConverters(gson)
-    }
+    fun provideProductEntityConverters(gson: Gson): GameEntityConverters = GameEntityConverters(gson)
 }
