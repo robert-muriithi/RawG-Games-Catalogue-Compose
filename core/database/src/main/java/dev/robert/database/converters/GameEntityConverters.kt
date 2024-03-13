@@ -4,6 +4,7 @@ import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dev.robert.database.entities.GameEntity
 import dev.robert.games.data.dto.category.GameResponse
 import dev.robert.network.dto.dto.games.EsrbRating
 import dev.robert.network.dto.dto.games.GenreResponseDto
@@ -121,6 +122,17 @@ class GameEntityConverters(
     fun toTagList(tagListString: String): List<Tag> {
         val type = object : TypeToken<List<Tag>>() {}.type
         return gson.fromJson(tagListString, type)
+    }
+
+    @TypeConverter
+    fun fromGameEntity(gameEntity: GameEntity): String {
+        val type = object : TypeToken<GameEntity>() {}.type
+        return gson.toJson(gameEntity, type)
+    }
+
+    @TypeConverter
+    fun toGameEntity(gameEntityString: String): GameEntity {
+        return gson.fromJson(gameEntityString, GameEntity::class.java)
     }
 
 }

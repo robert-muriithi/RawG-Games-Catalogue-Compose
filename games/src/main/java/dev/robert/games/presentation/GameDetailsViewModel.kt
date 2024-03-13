@@ -1,0 +1,96 @@
+package dev.robert.games.presentation
+
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dev.robert.games.domain.model.game_details.GameDetailsModel
+import dev.robert.games.domain.usecase.GetGameDetailsUseCase
+import dev.robert.games.presentation.events.GameDetailsEvents
+import dev.robert.shared.utils.Resource
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+class GameDetailsViewModel @Inject constructor(
+    private val getGameDetailsUseCase: GetGameDetailsUseCase,
+) : ViewModel() {
+
+    private val _gameDeatilsState = mutableStateOf(UIState<GameDetailsModel>())
+    val gameDetailsState = _gameDeatilsState as State<UIState<GameDetailsModel>>
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        _gameDeatilsState.value =
+            gameDetailsState.value.copy(isLoading = false, error = throwable.message)
+        _eventsFlow.tryEmit(
+            GameDetailsEvents.ErrorEvent(
+                throwable.message ?: "An unexpected error occurred"
+            )
+        )
+    }
+
+    private val _eventsFlow = MutableSharedFlow<GameDetailsEvents>()
+    val eventsFlow = _eventsFlow
+
+    fun getGameDetails(id: Int) {
+        _gameDeatilsState.value = UIState(isLoading = true)
+        viewModelScope.launch(exceptionHandler) {
+            getGameDetailsUseCase(id).collectLatest {
+                when (it) {
+                    is Resource.Success -> {
+                        _gameDeatilsState.value =
+                            gameDetailsState.value.copy(isLoading = false, data = it.value)
+                    }
+
+                    is Resource.Failure -> {
+                        _gameDeatilsState.value = gameDetailsState.value.copy(
+                            isLoading = false,
+                            error = it.throwable.message ?: "An unexpected error occurred"
+                        )
+                        _eventsFlow.tryEmit(
+                            GameDetailsEvents.ErrorEvent(
+                                it.throwable.message ?: "An unexpected error occurred"
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun onEvent(event: GameDetailsEvents) {
+        when (event) {
+            is GameDetailsEvents.BookmarkGame -> bookmarkGame(event.id, event.bookmarked)
+            is GameDetailsEvents.UnBookmarkGame -> unBookmarkGame(event.id, event.bookmarked)
+            is GameDetailsEvents.NavigateToHome -> navigateToHome(event.url)
+            is GameDetailsEvents.ShareGame -> shareGame(event.game)
+            is GameDetailsEvents.ErrorEvent -> _eventsFlow.tryEmit(event)
+            is GameDetailsEvents.RetryEvent -> getGameDetails(event.id)
+        }
+    }
+
+    private fun bookmarkGame(id: Int, bookmarked: Boolean) {
+        _eventsFlow.tryEmit(GameDetailsEvents.BookmarkGame(id, bookmarked))
+    }
+
+    private fun unBookmarkGame(int: Int, bookmarked: Boolean) {
+        _eventsFlow.tryEmit(GameDetailsEvents.UnBookmarkGame(int, bookmarked))
+    }
+
+    private fun navigateToHome(url: String) {
+        _eventsFlow.tryEmit(GameDetailsEvents.NavigateToHome(url))
+    }
+
+    private fun shareGame(game: String) {
+        _eventsFlow.tryEmit(GameDetailsEvents.ShareGame(game))
+    }
+}
+
+data class UIState<T>(
+    val error: String? = null,
+    val isLoading: Boolean = false,
+    val data: T? = null,
+)

@@ -1,4 +1,4 @@
-package dev.robert.products.presentation
+package dev.robert.games.presentation
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -8,11 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,17 +19,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.robert.products.domain.model.Product
-import dev.robert.products.presentation.widgets.CustomButton
+import dev.robert.games.presentation.components.CustomButton
 
 interface ProductDetailsScreenNavigator {
 
 }
 
 @Composable
-@Destination
 fun ProductDetailsScreen(
     product : Product,
     navigator: ProductDetailsScreenNavigator,

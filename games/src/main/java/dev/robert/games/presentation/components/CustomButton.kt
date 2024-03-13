@@ -1,4 +1,4 @@
-package dev.robert.products.presentation.widgets
+package dev.robert.games.presentation.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button

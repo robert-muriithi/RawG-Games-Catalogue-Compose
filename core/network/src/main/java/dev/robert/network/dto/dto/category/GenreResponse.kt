@@ -1,7 +1,8 @@
-package dev.robert.games.data.dto.category
+package dev.robert.network.dto.dto.category
 
 
 import com.google.gson.annotations.SerializedName
+import dev.robert.games.data.dto.category.GameResponse
 
 data class GenreResponse(
     @SerializedName("games")

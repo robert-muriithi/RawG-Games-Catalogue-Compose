@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -16,6 +18,7 @@ apply {
 apply {
     from("$rootDir/compose-dependencies.gradle")
 }
+val properties = gradleLocalProperties(rootDir)
 
 android {
     namespace = "dev.robert.navigationdemo"
@@ -56,6 +59,9 @@ android {
     buildFeatures {
         compose = true
     }
+    buildFeatures {
+        buildConfig = true
+    }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.4"
     }
@@ -68,6 +74,7 @@ android {
 
 dependencies {
     implementation(project(":settings"))
-    implementation(project(":favorites"))
+    implementation(project(":bookmarks"))
     implementation(project(":games"))
+    implementation(project(":search"))
 }

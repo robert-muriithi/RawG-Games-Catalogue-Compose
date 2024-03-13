@@ -10,14 +10,16 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/bookmarks" />
             <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/core/database" />
             <option value="$PROJECT_DIR$/core/datastore" />
             <option value="$PROJECT_DIR$/core/designsystem" />
             <option value="$PROJECT_DIR$/core/network" />
             <option value="$PROJECT_DIR$/core/shared" />
-            <option value="$PROJECT_DIR$/favorites" />
+            <option value="$PROJECT_DIR$/developers" />
             <option value="$PROJECT_DIR$/games" />
+            <option value="$PROJECT_DIR$/search" />
             <option value="$PROJECT_DIR$/settings" />
             <option value="$PROJECT_DIR$/tags" />
           </set>

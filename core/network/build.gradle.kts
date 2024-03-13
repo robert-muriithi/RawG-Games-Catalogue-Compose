@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -11,6 +13,10 @@ apply {
 apply {
     from("$rootDir/test-dependencies.gradle")
 }
+apply {
+    from("$rootDir/compose-dependencies.gradle")
+}
+val properties = gradleLocalProperties(rootDir)
 android {
     namespace = "dev.robert.network"
     compileSdk = 34
@@ -30,6 +36,12 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        debug {
+            buildConfigField("String", "BASE_URL", "\"https://api.rawg.io/api/\"")
+            buildConfigField("String", "API_KEY", properties.getProperty("API_KEY"))
+            isMinifyEnabled = false
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -40,6 +52,9 @@ android {
     }
     kotlin {
         jvmToolchain(11)
+    }
+    buildFeatures {
+        buildConfig = true
     }
     buildFeatures {
         compose = true

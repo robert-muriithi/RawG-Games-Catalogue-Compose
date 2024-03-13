@@ -1,13 +1,16 @@
 package dev.robert.network
 
 import android.content.Context
+import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
+import com.chuckerteam.chucker.api.RetentionManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.robert.network.apiservice.GamesApi
+import dev.robert.network.interceptor.RequestInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -23,9 +26,23 @@ object NetworkModule {
     fun provideOkHttpClient(
         @ApplicationContext context: Context,
     ): OkHttpClient {
-        val chuckInterceptor = ChuckerInterceptor.Builder(
-            context,
-        ).build()
+        val chuckInterceptor = ChuckerInterceptor.Builder(context)
+            .apply {
+                collector(
+                    ChuckerCollector(
+                        context = context,
+                        showNotification = BuildConfig.DEBUG,
+                        retentionPeriod = RetentionManager.Period.ONE_DAY
+                    )
+                )
+                maxContentLength(250_000L)
+                alwaysReadResponseBody(false)
+                if (!BuildConfig.DEBUG) {
+                    redactHeaders("Authorization", "Bearer")
+                    redactHeaders("Authorization", "Basic")
+                }
+            }
+            .build()
         val loggingInterceptor = HttpLoggingInterceptor()
         return OkHttpClient.Builder()
             .addInterceptor(
@@ -33,6 +50,7 @@ object NetworkModule {
                     level = HttpLoggingInterceptor.Level.BODY
                 },
             )
+            .addInterceptor(RequestInterceptor())
             .addInterceptor(chuckInterceptor)
             .addInterceptor(loggingInterceptor)
             .build()
@@ -44,13 +62,13 @@ object NetworkModule {
         okHttpClient: OkHttpClient,
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()
     }
 
-    const val BASE_URL = "https://api.rawg.io/api/games/"
+
 
     @Provides
     @Singleton
