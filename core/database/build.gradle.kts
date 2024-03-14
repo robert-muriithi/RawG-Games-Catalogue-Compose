@@ -3,7 +3,7 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id ("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
     kotlin("plugin.serialization") version "1.9.0"
     id("com.google.dagger.hilt.android")
 }
@@ -78,13 +78,13 @@ dependencies {
     api("androidx.room:room-paging:$roomVersion")*/
 
     //ROOM
-    api ("androidx.room:room-runtime:2.6.1")
-    ksp ("androidx.room:room-compiler:2.6.1")
-    api ("androidx.room:room-ktx:2.6.1")
-    api ("androidx.room:room-paging:2.6.1")
+    api("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    api("androidx.room:room-ktx:2.6.1")
+    api("androidx.room:room-paging:2.6.1")
 
     // Paging 3.0
-    api ("androidx.paging:paging-compose:1.0.0-alpha15")
+    api("androidx.paging:paging-compose:1.0.0-alpha15")
 
     implementation(project(":core:network"))
 }

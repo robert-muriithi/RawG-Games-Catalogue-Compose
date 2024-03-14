@@ -11,7 +11,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     //Extended Material Components
-    implementation ("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material:material-icons-extended")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
 
@@ -25,7 +25,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     //Paging for Jetpack Compose
-    implementation ("androidx.paging:paging-compose:3.2.1")
+    implementation("androidx.paging:paging-compose:3.2.1")
 
     // ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")

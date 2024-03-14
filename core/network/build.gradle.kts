@@ -3,7 +3,7 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id ("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
     kotlin("plugin.serialization") version "1.9.0"
     id("com.google.dagger.hilt.android")
 }
@@ -81,8 +81,8 @@ dependencies {
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
 
     // ktor
-    implementation ("io.ktor:ktor-client-android:1.5.0")
-    implementation ("io.ktor:ktor-client-serialization:1.5.0")
-    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-    implementation ("io.ktor:ktor-client-logging-jvm:1.5.0")
+    implementation("io.ktor:ktor-client-android:1.5.0")
+    implementation("io.ktor:ktor-client-serialization:1.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+    implementation("io.ktor:ktor-client-logging-jvm:1.5.0")
 }

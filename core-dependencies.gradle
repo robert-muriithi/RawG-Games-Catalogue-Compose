@@ -14,7 +14,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.9")
 
     //Data Store
-    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     implementation 'com.jakewharton.threetenabp:threetenabp:1.4.6'
 }
