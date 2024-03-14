@@ -1,4 +1,4 @@
-package dev.robert.navigationdemo
+package dev.robert.gametrail
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -44,8 +44,8 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import dev.robert.favorites.presentation.BookmarksScreen
 import dev.robert.games.presentation.HomeScreen
-import dev.robert.navigationdemo.navigation.Destinations
-import dev.robert.navigationdemo.ui.theme.NavigationDemoTheme
+import dev.robert.gametrail.navigation.Destinations
+import dev.robert.gametrail.ui.theme.NavigationDemoTheme
 import dev.robert.search.presentation.SearchScreen
 import dev.robert.settings.presentation.SettingsScreen
 

@@ -1,4 +1,4 @@
-package dev.robert.navigationdemo
+package dev.robert.gametrail
 
 import android.app.Application
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -6,7 +6,7 @@ import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 
 @HiltAndroidApp
-class NavigationDemoApp : Application() {
+class GameTrail : Application() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())

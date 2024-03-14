@@ -1,4 +1,4 @@
-package dev.robert.navigationdemo.ui.theme
+package dev.robert.gametrail.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
