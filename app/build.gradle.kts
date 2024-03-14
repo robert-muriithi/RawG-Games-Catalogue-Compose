@@ -21,11 +21,11 @@ apply {
 val properties = gradleLocalProperties(rootDir)
 
 android {
-    namespace = "dev.robert.navigationdemo"
+    namespace = "dev.robert.gametrail"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "dev.robert.navigationdemo"
+        applicationId = "dev.robert.gametrail"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

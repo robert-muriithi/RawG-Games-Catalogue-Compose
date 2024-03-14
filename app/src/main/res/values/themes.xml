@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<style name="Theme.NavigationDemo" parent="android:Theme.Material.Light.NoActionBar">
+<style name="Theme.GameTrail" parent="android:Theme.Material.Light.NoActionBar">
     <item name="android:statusBarColor">#fefefe</item>
     <item name="android:colorPrimary">#fa4a0c</item>
 </style>

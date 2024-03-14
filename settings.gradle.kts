@@ -13,7 +13,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NavigationDemo"
+rootProject.name = "GameTrail"
 include(":app")
 include(":games")
 include(":bookmarks")
