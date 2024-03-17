@@ -5,8 +5,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.robert.games.domain.model.game_details.GameDetailsModel
+import dev.robert.games.domain.usecase.BookMarkGameUseCase
 import dev.robert.games.domain.usecase.GetGameDetailsUseCase
+import dev.robert.games.domain.usecase.GetLocalGameUseCase
 import dev.robert.games.presentation.events.GameDetailsEvents
 import dev.robert.shared.utils.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -15,8 +18,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 class GameDetailsViewModel @Inject constructor(
     private val getGameDetailsUseCase: GetGameDetailsUseCase,
+    private val getLocalGameUseCase: GetLocalGameUseCase,
+    private val bookmarkGameUseCase: BookMarkGameUseCase,
 ) : ViewModel() {
 
     private val _gameDeatilsState = mutableStateOf(UIState<GameDetailsModel>())
@@ -34,6 +40,10 @@ class GameDetailsViewModel @Inject constructor(
 
     private val _eventsFlow = MutableSharedFlow<GameDetailsEvents>()
     val eventsFlow = _eventsFlow
+
+
+    fun getLocalGame(id: Int) = getLocalGameUseCase(id)
+
 
     fun getGameDetails(id: Int) {
         _gameDeatilsState.value = UIState(isLoading = true)
@@ -73,7 +83,10 @@ class GameDetailsViewModel @Inject constructor(
     }
 
     private fun bookmarkGame(id: Int, bookmarked: Boolean) {
-        _eventsFlow.tryEmit(GameDetailsEvents.BookmarkGame(id, bookmarked))
+        viewModelScope.launch {
+            bookmarkGameUseCase(id, bookmarked)
+            _eventsFlow.tryEmit(GameDetailsEvents.BookmarkGame(id, bookmarked))
+        }
     }
 
     private fun unBookmarkGame(int: Int, bookmarked: Boolean) {

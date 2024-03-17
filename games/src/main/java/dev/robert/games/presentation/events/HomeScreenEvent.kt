@@ -1,8 +1,10 @@
 package dev.robert.games.presentation.events
 
 sealed class HomeScreenEvent {
-    object NavigateToGameDetails : HomeScreenEvent()
+    data class NavigateToGameDetails(val id: Int) : HomeScreenEvent()
     object NavigateToSearch : HomeScreenEvent()
+
+    object NavigateToBookmarks : HomeScreenEvent()
 
     data class NavigateToCategory(val category: String) : HomeScreenEvent()
 }
