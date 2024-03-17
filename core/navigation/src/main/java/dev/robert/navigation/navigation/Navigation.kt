@@ -1,4 +1,4 @@
-package dev.robert.gametrail.navigation
+package dev.robert.navigation.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
@@ -6,10 +6,6 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-import dev.robert.games.domain.model.game.GamesResultModel
-
 sealed class Destinations(
     val route: String,
     val title: String? = null,
@@ -38,10 +34,12 @@ sealed class Destinations(
         icon = Icons.Outlined.Settings
     )
 
-    data object GameDetailsScreen : Destinations(route = "detail_screen/") {
-        val arguments = navArgument("game") {
-            type = NavType.ParcelableType(GamesResultModel::class.java)
-        }
-    }
+    data object GameDetailsScreen : Destinations(
+        route = "detail_screen"
+    )
+
+    data object GameCategoriesScreen : Destinations(
+        route = "category_screen"
+    )
 
 }

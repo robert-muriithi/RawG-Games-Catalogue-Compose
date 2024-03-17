@@ -20,6 +20,10 @@ interface GamesRepository {
 
     fun getGameDetails(id: Int) : Flow<Resource<GameDetailsModel>>
 
+    fun getLocalGameDetails(id: Int) : Flow<GamesResultModel>
+
+    fun bookMarkGame(id: Int, isBookMarked: Boolean) : Flow<Resource<Boolean>>
+
     /*suspend fun getProduct(id: Int): Flow<Resource<Product>>
 
     suspend fun getProductsByCategory(category: String): Flow<Resource<List<Product>>>

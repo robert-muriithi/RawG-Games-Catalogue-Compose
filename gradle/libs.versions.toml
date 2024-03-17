@@ -19,6 +19,10 @@ threetenabp = "1.4.6"
 timber = "5.0.1"
 compose-bom = "2023.10.01"
 ksp = "1.9.20-1.0.14"
+agp = "8.1.2"
+kotlin = "1.9.20"
+appcompat = "1.6.1"
+material = "1.11.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
@@ -42,8 +46,12 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 junit = { module = "junit:junit", version.ref = "junit" }
 threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
 
 

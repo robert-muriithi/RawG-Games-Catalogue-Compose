@@ -42,14 +42,14 @@ import dev.robert.games.utils.getPlatformIcon
 @Composable
 fun GameItem(
     game: GamesResultModel,
-    onClick: (GamesResultModel) -> Unit,
+    onClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
             .width(220.dp)
             .clickable {
-                onClick(game)
+                game.id?.let { onClick(it) }
             },
         colors = CardDefaults.cardColors(contentColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
