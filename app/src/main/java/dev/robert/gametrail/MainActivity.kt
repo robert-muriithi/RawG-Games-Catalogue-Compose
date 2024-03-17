@@ -3,6 +3,8 @@ package dev.robert.gametrail
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -20,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,28 +38,42 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavArgument
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import dev.robert.favorites.presentation.BookmarksScreen
+import dev.robert.games.presentation.GameDetailsScreen
 import dev.robert.games.presentation.HomeScreen
-import dev.robert.gametrail.navigation.Destinations
+import dev.robert.gametrail.ui.theme.GameTrailTheme
+import dev.robert.navigation.navigation.Destinations
 import dev.robert.gametrail.ui.theme.NavigationDemoTheme
+import dev.robert.gametrail.ui.theme.Theme
 import dev.robert.search.presentation.SearchScreen
 import dev.robert.settings.presentation.SettingsScreen
+import kotlinx.coroutines.Dispatchers
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val viewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContent {
-            NavigationDemoTheme {
+            val theme by viewModel.theme.collectAsStateWithLifecycle()
+            GameTrailTheme(
+                theme = theme
+            ) {
                 val navController: NavHostController = rememberNavController()
                 val bottomBarHeight = 60.dp
                 val bottomBarOffsetHeightPx = remember { mutableFloatStateOf(0f) }
@@ -67,14 +84,24 @@ class MainActivity : ComponentActivity() {
                     buttonsVisible.value = bottomBarOffsetHeightPx.value >= -5
                 }
 
+                val shouldShouldBottomBar =
+                    navController.currentBackStackEntryAsState().value?.destination?.route in
+                            listOf(
+                                Destinations.HomeScreen.route,
+                                Destinations.SearchScreen.route,
+                                Destinations.BookMarksScreen.route,
+                                Destinations.SettingsScreen.route
+                            )
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     Scaffold(
                         bottomBar = {
-                            BottomBar(navController = navController,
-                                state = buttonsVisible,
-                                modifier = Modifier,
+                            if (shouldShouldBottomBar) {
+                                BottomBar(
+                                    navController = navController,
+                                    state = buttonsVisible,
+                                    modifier = Modifier,
                                     /*.height(bottomBarHeight)
                                     .offset {
                                         IntOffset(
@@ -82,7 +109,8 @@ class MainActivity : ComponentActivity() {
                                             y = -bottomBarOffsetHeightPx.floatValue.roundToInt()
                                         )
                                     })*/
-                            )
+                                )
+                            }
                         }, modifier = Modifier.bottomBarAnimatedScroll(
                             height = bottomBarHeight, offsetHeightPx = bottomBarOffsetHeightPx
                         )
@@ -131,19 +159,36 @@ fun NavigationGraph(navController: NavHostController) {
     NavHost(navController, startDestination = Destinations.HomeScreen.route) {
         composable(Destinations.HomeScreen.route) {
             HomeScreen(
-                navigateToDetails = { gameResult ->
-                    navController.navigate(Destinations.GameDetailsScreen.route)
-                }
+                navController = navController
             )
         }
         composable(Destinations.SearchScreen.route) {
-            SearchScreen()
+            SearchScreen(
+                navController = navController
+            )
         }
         composable(Destinations.BookMarksScreen.route) {
-            BookmarksScreen()
+            BookmarksScreen(
+                navController = navController
+            )
         }
         composable(Destinations.SettingsScreen.route) {
-            SettingsScreen()
+            SettingsScreen(
+                navController = navController
+            )
+        }
+        composable(
+            Destinations.GameDetailsScreen.route + "/{id}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.IntType },
+            )
+        ) {
+            val gameId = it.arguments?.getInt("id")
+            gameId?.let { it1 ->
+                GameDetailsScreen(
+                    gameId = it1,
+                )
+            }
         }
     }
 }
@@ -153,7 +198,10 @@ fun BottomBar(
     navController: NavHostController, state: MutableState<Boolean>, modifier: Modifier = Modifier,
 ) {
     val screens = listOf(
-        Destinations.HomeScreen, Destinations.SearchScreen, Destinations.BookMarksScreen, Destinations.SettingsScreen
+        Destinations.HomeScreen,
+        Destinations.SearchScreen,
+        Destinations.BookMarksScreen,
+        Destinations.SettingsScreen
     )
     AnimatedVisibility(
         visible = state.value,
