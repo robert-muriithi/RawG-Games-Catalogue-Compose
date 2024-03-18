@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +14,8 @@ import dev.robert.products.domain.model.Product
 import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetGamesUseCase
 import dev.robert.games.domain.usecase.GetHotGamesUseCase
+import dev.robert.games.presentation.events.HomeScreenEvent
+import dev.robert.navigation.navigation.Destinations
 import dev.robert.shared.utils.Resource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -30,11 +33,36 @@ class HomeScreenViewModel @Inject constructor(
 
     private val _selectedCategory = mutableStateOf("All")
     val selectedCategory: State<String> = _selectedCategory
+
+    private val event = mutableStateOf<HomeScreenEvent?>(null)
+    val currentEvent: State<HomeScreenEvent?> = event
+
     fun setCategory(value: String) {
         _selectedCategory.value = value
     }
 
-    fun onGameSelected(game: GamesResultModel) {
+    private lateinit var navController: NavController
+
+    fun setNavController(navController: NavController) {
+        this.navController = navController
+    }
+
+    fun onEvent(event: HomeScreenEvent) {
+        when(event) {
+            is HomeScreenEvent.NavigateToGameDetails -> {
+                navController.navigate(Destinations.GameDetailsScreen.route + "/${event.id}")
+            }
+            is HomeScreenEvent.NavigateToSearch -> {
+                navController.navigate(Destinations.SearchScreen.route)
+            }
+            is HomeScreenEvent.NavigateToBookmarks -> {
+                navController.navigate(Destinations.BookMarksScreen.route)
+            }
+
+            is HomeScreenEvent.NavigateToCategory -> {
+//                navController.navigate(Destinations.CategoryScreen.route)
+            }
+        }
     }
 
     /*fun onProductCategorySelected(product: Product) {

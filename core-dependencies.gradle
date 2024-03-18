@@ -1,20 +1,22 @@
 dependencies {
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.49")
-    ksp("com.google.dagger:dagger-compiler:2.49")
-    ksp("com.google.dagger:hilt-android-compiler:2.49")
+    implementation(libs.hilt.android)
+    ksp(libs.dagger.compiler)
+    ksp(libs.hilt.android.compiler)
 
     // Timber
-    implementation("com.jakewharton.timber:timber:5.0.1")
+    implementation(libs.timber)
 
     //Gson
-    implementation("com.google.code.gson:gson:2.8.9")
+    implementation(libs.gson)
 
     //Data Store
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.androidx.datastore.preferences)
 
-    implementation 'com.jakewharton.threetenabp:threetenabp:1.4.6'
+    implementation libs.threetenabp
+
+    implementation(libs.appcompat)
 }

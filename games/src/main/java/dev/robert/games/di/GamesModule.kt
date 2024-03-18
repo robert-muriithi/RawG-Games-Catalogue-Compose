@@ -7,10 +7,12 @@ import dagger.hilt.components.SingletonComponent
 import dev.robert.database.database.GamesDatabase
 import dev.robert.games.data.repository.GamesRepositoryImpl
 import dev.robert.games.domain.repository.GamesRepository
+import dev.robert.games.domain.usecase.BookMarkGameUseCase
 import dev.robert.games.domain.usecase.GetGameDetailsUseCase
 import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetGamesUseCase
 import dev.robert.games.domain.usecase.GetHotGamesUseCase
+import dev.robert.games.domain.usecase.GetLocalGameUseCase
 import dev.robert.games.domain.usecase.SearchGamesUseCase
 import dev.robert.network.apiservice.GamesApi
 import javax.inject.Singleton
@@ -37,6 +39,12 @@ object GamesModule {
     fun provideGetHotGamesUseCase(
         repository: GamesRepository
     ): GetHotGamesUseCase = GetHotGamesUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideGetLocalGameUseCase(
+        repository: GamesRepository
+    ): GetLocalGameUseCase = GetLocalGameUseCase(repository)
     @Provides
     @Singleton
     fun provideSearchGamesUseCase(
@@ -55,6 +63,13 @@ object GamesModule {
     fun provideGetGameDetailsUseCase(
         repository: GamesRepository
     ): GetGameDetailsUseCase = GetGameDetailsUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideBookMarkGameUseCase(
+        repository: GamesRepository
+    ): BookMarkGameUseCase = BookMarkGameUseCase(repository)
+
 
     /*@OptIn(ExperimentalPagingApi::class)
     @Provides

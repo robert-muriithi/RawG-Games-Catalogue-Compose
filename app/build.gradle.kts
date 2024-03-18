@@ -77,4 +77,6 @@ dependencies {
     implementation(project(":bookmarks"))
     implementation(project(":games"))
     implementation(project(":search"))
+    implementation(project(":core:datastore"))
+    implementation(project(":core:navigation"))
 }

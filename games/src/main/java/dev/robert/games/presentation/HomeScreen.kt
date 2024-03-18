@@ -93,6 +93,7 @@ import dev.robert.games.domain.model.genre.Genre
 import dev.robert.games.presentation.components.GameItem
 import dev.robert.games.presentation.components.GenreItem
 import dev.robert.games.presentation.components.NetworkImage
+import dev.robert.games.presentation.events.HomeScreenEvent
 import dev.robert.games.utils.stringToColor
 import dev.robert.products.domain.model.Product
 import dev.robert.products.domain.model.Rating
@@ -111,7 +112,7 @@ import java.lang.Math.floor
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel(),
-    navigateToDetails : (GamesResultModel) -> Unit
+    navController: NavController,
 ) {
     val genresState = viewModel.genresState.value
     val gamesState = viewModel.gamesState.value
@@ -125,6 +126,9 @@ fun HomeScreen(
 
     val verticalGridState = rememberLazyGridState()
 
+    LaunchedEffect(key1 = Unit, block ={
+        viewModel.setNavController(navController)
+    })
 
 
     Scaffold(
@@ -147,7 +151,9 @@ fun HomeScreen(
             verticalGridState = verticalGridState,
             modifier = Modifier,
             onGameSelected = {
-                viewModel.onGameSelected(it)
+                viewModel.onEvent(
+                    HomeScreenEvent.NavigateToGameDetails(it)
+                )
             },
             onGenreSelected = { genre ->
                 viewModel.setCategory(genre.name)
@@ -177,7 +183,7 @@ fun GamesWidget(
     verticalGridState: LazyGridState,
 //    navigator: HomeScreenNavigator,
     modifier: Modifier = Modifier,
-    onGameSelected: (GamesResultModel) -> Unit,
+    onGameSelected: (Int) -> Unit,
     onGenreSelected: (Genre) -> Unit,
 ) {
     val toolbarHeightRange = with(LocalDensity.current) {
@@ -227,7 +233,7 @@ fun GamesWidget(
 
 @Composable
 fun LazyGames(
-    onGameSelected: (GamesResultModel) -> Unit,
+    onGameSelected: (Int) -> Unit,
     lazyGames: LazyPagingItems<GamesResultModel>?,
     verticalGridState: LazyGridState,
     genres: LazyPagingItems<Genre>?,
@@ -328,7 +334,7 @@ fun LazyGames(
 fun HotGames(
     games: List<GamesResultModel>?,
     modifier: Modifier = Modifier,
-    onGameSelected: (GamesResultModel) -> Unit,
+    onGameSelected: (Int) -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = {
         games?.size ?: 0
@@ -367,7 +373,7 @@ fun HotGames(
             games?.let {
                 HotGameItem(
                     game = it[page],
-                    onClick = onGameSelected,
+                    onGameSelected = onGameSelected,
                 )
             }
         }
@@ -412,7 +418,7 @@ fun FilterButton(
 @Composable
 fun HotGameItem(
     game: GamesResultModel,
-    onClick: (GamesResultModel) -> Unit,
+    onGameSelected: (Int) -> Unit,
 ) {
     Card(
         elevation = CardDefaults.cardElevation(0.dp),
@@ -421,7 +427,7 @@ fun HotGameItem(
             .height(300.dp)
             .padding(horizontal = 5.dp)
             .clickable {
-                onClick(game)
+                game.id?.let { onGameSelected(it) }
             }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -800,7 +806,7 @@ fun ProductCard(
             .padding(8.dp)
             .fillMaxSize()
             .clickable {
-                onclick(product.id ?: 0)
+                product.id?.let { onclick(it) }
             }) {
         Column(modifier = modifier.fillMaxWidth()) {
             ProductImage(
@@ -816,7 +822,7 @@ fun ProductCard(
                 ProductDescription(description = product.metacritic.toString())
 //                ProductPriceAndRating(price = product.price, rating = product.rating)
                 CartButton(onclick = {
-                    onclick(product.id ?: 0)
+                    product.id?.let { onclick(it) }
                 })
             }
         }

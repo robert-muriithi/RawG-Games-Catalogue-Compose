@@ -30,4 +30,7 @@ interface GameDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGame(product: List<GameEntity>)
+
+    @Query("UPDATE games SET isBookMarked = :bookmarked WHERE id = :id")
+    suspend fun updateBookmark(id: Int, bookmarked: Boolean)
 }
