@@ -1,11 +1,11 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.ksp)
     kotlin("plugin.serialization") version "1.9.0"
-    id("com.google.dagger.hilt.android")
+    alias(libs.plugins.hiltAndroid)
 }
 apply {
     from("$rootDir/core-dependencies.gradle")
