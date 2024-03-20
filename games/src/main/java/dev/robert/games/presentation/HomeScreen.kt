@@ -1,7 +1,6 @@
 package dev.robert.games.presentation
 
 import android.annotation.SuppressLint
-import android.widget.RatingBar
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,9 +30,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
@@ -56,9 +53,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -80,7 +74,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -94,13 +87,9 @@ import dev.robert.games.presentation.components.GameItem
 import dev.robert.games.presentation.components.GenreItem
 import dev.robert.games.presentation.components.NetworkImage
 import dev.robert.games.presentation.events.HomeScreenEvent
-import dev.robert.games.utils.stringToColor
-import dev.robert.products.domain.model.Product
-import dev.robert.products.domain.model.Rating
 import dev.robert.products.presentation.utils.ExitUntilCollapsedState
 import dev.robert.products.presentation.utils.ToolbarState
 import dev.robert.products.presentation.widgets.HomeCollapsibleToolbar
-import dev.robert.shared.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import java.lang.Math.ceil
 import java.lang.Math.floor
@@ -547,110 +536,6 @@ fun CategoriesWidget(
         }
     )
 }
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Composable
-fun ProductsWidget(
-    productsState: StateHolder<Flow<PagingData<GamesResultModel>>>,
-    products: StateHolder<Flow<PagingData<GamesResultModel>>>,
-    categoriesState: StateHolder<List<String>>?,
-    selectedCategory: String,
-    onCategorySelected: (String) -> Unit,
-    verticalGridState: LazyStaggeredGridState,
-) {
-    Scaffold(
-        topBar = {
-            HomeCollapsibleToolbar(
-                backgroundImageResId = dev.robert.shared.R.drawable.ic_android_black_24dp,
-                progress = 0f,
-                onSearchButtonClicked = {},
-                onSettingsButtonClicked = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                logoResId = dev.robert.shared.R.drawable.ic_android_black_24dp
-            )
-        },
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 10.dp)
-        ) {
-            /*if (products!!.isLoading) CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            if (!products.isLoading && products.error != null) ErrorComponent(productsState = productsState)
-            if (products.data?.isEmpty() == true && products.isLoading.not()) EmptyProductsComponent()
-            if (products.data?.isNotEmpty() == true && products.isLoading.not() && products.error == null)
-                ProductSuccessComponent(
-                    productsState = productsState,
-                    selectedCategory = selectedCategory,
-                    products = products,
-                    onProductSelected = {},
-                    onProductCategorySelected = {},
-                    verticalGridState = verticalGridState,
-                )*/
-        }
-    }
-}
-
-@Composable
-fun ProductSuccessComponent(
-    productsState: StateHolder<Flow<PagingData<GamesResultModel>>>,
-    selectedCategory: String,
-    products: StateHolder<List<Product>>?,
-    onProductSelected: (Int) -> Unit,
-    onProductCategorySelected: (String) -> Unit,
-    verticalGridState: LazyStaggeredGridState,
-//    navigator: DestinationsNavigator
-) {
-    val data = products?.data
-    if (products == null) return
-    if (data == null) return
-    if (products.isLoading || products.error != null || data.isEmpty()) return
-    /*when {
-        selectedCategory != "All" -> ProductsList(
-            products = productsState,
-            onProductSelected = onProductSelected,
-            onProductCategorySelected = onProductCategorySelected,
-            verticalGridState = verticalGridState,
-//            navigator = navigator
-        )
-        else -> Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 10.dp)) {
-            ProductsList(
-                products = products,
-                onProductSelected = onProductSelected,
-                onProductCategorySelected = onProductCategorySelected,
-                verticalGridState = verticalGridState,
-//                navigator = navigator
-            )
-        }
-    }*/
-}
-
-@Composable
-fun BoxScope.ErrorComponent(
-    productsState: StateHolder<Flow<PagingData<GamesResultModel>>>,
-) {
-    productsState.error?.let {
-        Text(
-            text = it,
-            modifier = Modifier.align(Alignment.Center)
-        )
-    }
-
-}
-
-@Composable
-fun BoxScope.EmptyProductsComponent() {
-    Text(
-        text = "No products found",
-        modifier = Modifier.align(Alignment.Center)
-    )
-
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
@@ -699,76 +584,7 @@ fun TopBar(
     )
 }
 
-@Composable
-fun ProductsList(
-    products: LazyPagingItems<GamesResultModel>?,
-    productsState: StateHolder<Flow<PagingData<GamesResultModel>>>?,
-    onProductSelected: (Int) -> Unit,
-    onProductCategorySelected: (String) -> Unit,
-    verticalGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
-    modifier: Modifier = Modifier,
-) {
-    val context = LocalContext.current
-    val contentPadding = PaddingValues(8.dp)
-    LazyVerticalStaggeredGrid(
-        contentPadding = contentPadding,
-        state = verticalGridState,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 20.dp),
-        columns = StaggeredGridCells.Adaptive(150.dp),
-        content = {
-            item {
-                HeaderItem()
-            }
-            products.let {
-                it?.let { pagingItems ->
-                    items(pagingItems.itemCount) { index ->
-                        it[index]?.let { gameResult ->
-                            ProductCard(
-                                product = gameResult,
-                                onclick = {
-                                    /*navigator.navigate(
-                                                            ProductDetailsScreenDestination.invoke(it[index])
-                                                        )*/
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-            when {
-                products?.loadState?.append is LoadState.Loading -> {
-                    item {
-                        CircularProgressIndicator()
-                    }
-                }
 
-                products?.loadState?.append is LoadState.Error -> {
-                    val e = products.loadState.append as LoadState.Error
-                    item {
-                        Text(text = e.error.localizedMessage ?: "Unknown error")
-                    }
-                }
-            }
-            /*products?.data?.let {
-                items(it.size) { index ->
-                    ProductCard(
-                        product = products.data[index],
-//                        onProductSelected = onProductSelected,
-//                        onProductCategorySelected = onProductCategorySelected,
-                        onclick = {
-                            navigator.navigate(
-                                ProductDetailsScreenDestination.invoke(products.data[index])
-                            )
-                        }
-                    )
-                }
-            }*/
-        }
-    )
-
-}
 
 @Composable
 fun HeaderItem() {
@@ -794,43 +610,7 @@ fun HeaderItem() {
 }
 
 @Composable
-fun ProductCard(
-    product: GamesResultModel,
-//    onProductSelected: (Int) -> Unit,
-//    onProductCategorySelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    onclick: (Int) -> Unit = {},
-) {
-    Card(
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxSize()
-            .clickable {
-                product.id?.let { onclick(it) }
-            }) {
-        Column(modifier = modifier.fillMaxWidth()) {
-            ProductImage(
-                imageUrl = product.backgroundImage ?: "",
-                contentDescription = product.name ?: ""
-            )
-            Column(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            ) {
-                ProductTitle(title = product.name ?: "")
-                ProductDescription(description = product.metacritic.toString())
-//                ProductPriceAndRating(price = product.price, rating = product.rating)
-                CartButton(onclick = {
-                    product.id?.let { onclick(it) }
-                })
-            }
-        }
-    }
-}
-
-@Composable
-fun CartButton(onclick: () -> Unit) {
+fun BookMarkButton(onclick: () -> Unit) {
     val clicked = remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -853,111 +633,3 @@ fun CartButton(onclick: () -> Unit) {
         }
     }
 }
-
-@Composable
-fun ProductPriceAndRating(price: Double, rating: Rating) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        ProductPriceTag(price = price, rating = rating)
-//        ProductRating(rating = rating)
-    }
-}
-
-@Composable
-fun ProductRating(rating: Rating, starsColor: Color = Color.Yellow, modifier: Modifier = Modifier) {
-    val filledStars = floor(rating.rate).toInt()
-    val unfilledStars = (rating.count - ceil(rating.rate)).toInt()
-    val halfStar = !(rating.rate.rem(1).equals(0.0))
-    Row(
-        modifier = modifier
-    ) {
-        repeat(filledStars) {
-            Icon(imageVector = Icons.Filled.Star, contentDescription = null, tint = starsColor)
-        }
-        if (halfStar) {
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = null,
-                tint = starsColor
-            )
-        }
-        repeat(unfilledStars) {
-            Icon(
-                imageVector = Icons.Outlined.Star,
-                contentDescription = null,
-                tint = starsColor
-            )
-        }
-    }
-}
-
-
-@Composable
-fun ProductPriceTag(price: Double, rating: Rating) {
-    Text(
-        text = "$$price",
-        style = TextStyle(
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp
-        )
-    )
-}
-
-@Composable
-fun ProductDescription(description: String) {
-    Text(
-        text = description,
-        style = TextStyle(
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Thin
-        ),
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis
-    )
-}
-
-@Composable
-fun ProductTitle(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = title,
-        style = TextStyle(
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp
-        )
-    )
-}
-
-
-@Composable
-fun ProductImage(
-    imageUrl: String,
-    contentDescription: String,
-) {
-    Image(
-        painter = rememberAsyncImagePainter(
-            ImageRequest.Builder(LocalContext.current).data(data = imageUrl)
-                .apply(block = fun ImageRequest.Builder.() {
-                    crossfade(true)
-                }).build()
-        ),
-        contentDescription = contentDescription,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(150.dp),
-        contentScale = ContentScale.Crop
-    )
-}
-/*interface HomeScreenNavigator {
-    fun openHome()
-
-    fun openProductDetails(product: Product)
-
-    fun popupBackStack()
-}*/
-

@@ -1,8 +1,23 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.ksp)
+    kotlin("plugin.serialization") version "1.9.0"
+    alias(libs.plugins.hiltAndroid)
 }
 
+apply {
+    from("$rootDir/core-dependencies.gradle")
+}
+apply {
+    from("$rootDir/test-dependencies.gradle")
+}
+apply {
+    from("$rootDir/compose-dependencies.gradle")
+}
+val properties = gradleLocalProperties(rootDir)
 android {
     namespace = "dev.robert.developers"
     compileSdk = 34
@@ -22,22 +37,34 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        debug {
+            buildConfigField("String", "BASE_URL", "\"https://api.rawg.io/api/\"")
+            buildConfigField("String", "API_KEY", properties.getProperty("API_KEY"))
+            isMinifyEnabled = false
+        }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
+    }
+    kotlin {
+        jvmToolchain(11)
+    }
+    buildFeatures {
+        compose = true
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.4"
     }
 }
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
