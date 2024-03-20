@@ -10,7 +10,6 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.genre.Genre
-import dev.robert.products.domain.model.Product
 import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetGamesUseCase
 import dev.robert.games.domain.usecase.GetHotGamesUseCase
@@ -20,7 +19,6 @@ import dev.robert.shared.utils.Resource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
