@@ -69,22 +69,11 @@ android {
 }
 
 dependencies {
-    /*val roomVersion = "2.4.3"
-    api("androidx.room:room-runtime:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
-    api("androidx.room:room-ktx:$roomVersion")
-
-    // room - paging
-    api("androidx.room:room-paging:$roomVersion")*/
-
     //ROOM
-    api("androidx.room:room-runtime:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
-    api("androidx.room:room-ktx:2.6.1")
-    api("androidx.room:room-paging:2.6.1")
-
-    // Paging 3.0
-    api("androidx.paging:paging-compose:1.0.0-alpha15")
+    api(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    api(libs.androidx.room.ktx)
+    api(libs.androidx.room.paging)
 
     implementation(project(":core:network"))
 }
