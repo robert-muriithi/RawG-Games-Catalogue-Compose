@@ -67,18 +67,18 @@ android {
 dependencies {
 
     // Retrofit
-    api("com.squareup.retrofit2:retrofit:2.9.0")
-    api("com.squareup.retrofit2:converter-gson:2.9.0")
+    api(libs.retrofit)
+    api(libs.retrofit.converter.gson)
 
     // OkHttp client
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation(libs.okhttp)
 
     // HttpLoggingInterceptor
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation(libs.okhttp.logging.interceptor)
 
     // Chucker
-    debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
-    releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
+    debugImplementation(libs.chucker)
+    releaseImplementation(libs.chucker.library.no.op)
 
     // ktor
     implementation("io.ktor:ktor-client-android:1.5.0")
