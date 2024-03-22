@@ -12,6 +12,7 @@ interface GamesRepository {
     fun getGameGenres() : Flow<PagingData<Genre>>
 
     fun getGames(query: String?) : Flow<PagingData<GamesResultModel>>
+    fun getGenresGames(genres : String?) : Flow<PagingData<GamesResultModel>>
 
     fun getHotGames(refresh : Boolean) : Flow<Resource<List<GamesResultModel>>>
 

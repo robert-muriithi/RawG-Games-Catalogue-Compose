@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit
 class GamesRemoteMediator(
     private val appDb: GamesDatabase,
     private val apiService: GamesApi,
-    private val query: String? = null
+    private val query: String? = null,
+    private val genre: String? = null
 ) : RemoteMediator<Int, GameEntity>() {
 
     private val remoteKeyDao = appDb.remoteKeyDao()
@@ -50,9 +51,10 @@ class GamesRemoteMediator(
                 apiService.getGames(
                 page = page,
                 pageSize = state.config.pageSize,
-                search = query
+                search = query,
+                genres = genre?.toString()
             )
-            val games = apiResponse.results
+            val games = apiResponse.results.sortedByDescending { it.metacritic }
 
              val endOfPaginationReached = games.isEmpty()
              appDb.withTransaction {
