@@ -84,7 +84,7 @@ fun GamesResponseDto.toDomain(): GamesResponseModel = GamesResponseModel(
 )
 
 fun GenreEntity.toDomain() : Genre = Genre(
-    id = id ?: 0,
+    id = id,
     name = name,
     gamesCount = gamesCount,
     imageBackground = imageBackground,
@@ -144,7 +144,7 @@ fun GamesResponseResult.toGameResultModel() : GamesResultModel = GamesResultMode
 )
 
 
-fun GamesResponseResult.toEntity() : GameEntity = GameEntity(
+fun GamesResponseResult.toEntity(searchQuery : String?) : GameEntity = GameEntity(
     added = added,
     backgroundImage = backgroundImage,
     clip = clip,
@@ -166,7 +166,8 @@ fun GamesResponseResult.toEntity() : GameEntity = GameEntity(
     saturatedColor = saturatedColor,
     shortScreenshots = shortScreenshots,
     suggestionsCount = suggestionsCount,
-    tags = tags
+    tags = tags,
+    searchQuery = searchQuery
 )
 
 fun GenreResponseDto.toDomainGenre() : GenreModel = GenreModel(

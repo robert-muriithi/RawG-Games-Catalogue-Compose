@@ -10,12 +10,12 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.genre.Genre
-import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetGamesUseCase
+import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetHotGamesUseCase
 import dev.robert.games.presentation.events.HomeScreenEvent
 import dev.robert.navigation.navigation.Destinations
-import dev.robert.shared.utils.Resource
+import dev.robert.network.Resource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
@@ -60,6 +60,12 @@ class HomeScreenViewModel @Inject constructor(
             is HomeScreenEvent.NavigateToCategory -> {
 //                navController.navigate(Destinations.CategoryScreen.route)
             }
+
+            is HomeScreenEvent.NavigateToGenreDetails -> {
+                navController.navigate(Destinations.GenreDetailsScreen.route + "/${event.genre}")
+            }
+
+            else -> {}
         }
     }
 
@@ -108,12 +114,12 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-    private fun getHotGames() {
+    fun getHotGames(refresh : Boolean) {
         _hotGamesState.value = hotGamesState.value.copy(
             isLoading = true
         )
         viewModelScope.launch {
-            getHotGamesUseCase().collectLatest {
+            getHotGamesUseCase.invoke(refresh).collectLatest {
                 when(it) {
                     is Resource.Failure -> {
                         _hotGamesState.value = hotGamesState.value.copy(
@@ -132,12 +138,12 @@ class HomeScreenViewModel @Inject constructor(
             }
     }
 
-    private fun getGames() {
+    fun getGames(searchTerm: String? = null) {
         _gamesState.value = gamesState.value.copy(
             isLoading = true
         )
         viewModelScope.launch {
-         val games = getGamesUseCase.invoke().cachedIn(viewModelScope)
+         val games = getGamesUseCase.invoke(query = searchTerm).cachedIn(viewModelScope)
             _gamesState.value = gamesState.value.copy(
                 isLoading = false,
                 data = games
@@ -148,7 +154,7 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val hotGames = async { getHotGames() }
+            val hotGames = async { getHotGames(false) }
             hotGames.await()
             val categories = async { getProductCategories() }
             categories.await()

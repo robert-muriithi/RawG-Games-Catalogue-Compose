@@ -11,6 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import dev.robert.database.converters.GameEntityConverters
 import dev.robert.database.dao.GenreEntityDao
 import dev.robert.database.dao.GameDao
+import dev.robert.database.dao.RemoteKeyDao
 import dev.robert.database.database.GamesDatabase
 import javax.inject.Singleton
 
@@ -24,9 +25,15 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideProductsDao(
+    fun provideGameEntityDao(
         database: GamesDatabase,
     ): GameDao = database.gameEntityDao()
+
+    @Provides
+    @Singleton
+    fun provideRemoteKeyDao(
+        database: GamesDatabase,
+    ): RemoteKeyDao = database.remoteKeyDao()
 
     @Provides
     @Singleton

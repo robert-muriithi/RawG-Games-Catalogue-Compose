@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import dev.robert.database.entities.GameEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GameDao {
@@ -33,4 +34,13 @@ interface GameDao {
 
     @Query("UPDATE games SET isBookMarked = :bookmarked WHERE id = :id")
     suspend fun updateBookmark(id: Int, bookmarked: Boolean)
+
+    @Query("SELECT * FROM games WHERE rating > 4 order by rating desc limit :limit")
+    fun getGamesAsFow(limit: Int): Flow<List<GameEntity>>
+
+    @Query("SELECT * FROM games WHERE isBookMarked = 1")
+    fun getBookmarkedGames(): PagingSource<Int, GameEntity>
+
+    @Query("SELECT * FROM games WHERE genreResponseDtos LIKE '%'|| :genre ||'%'")
+    fun getGamesByGenre(genre: String? = ""): PagingSource<Int, GameEntity>
 }

@@ -42,4 +42,8 @@ sealed class Destinations(
         route = "category_screen"
     )
 
+    data object GenreDetailsScreen : Destinations(
+        route = "genre_details_screen"
+    )
+
 }

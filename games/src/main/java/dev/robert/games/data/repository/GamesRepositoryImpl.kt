@@ -5,19 +5,21 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import androidx.room.withTransaction
 import dev.robert.database.database.GamesDatabase
+import dev.robert.database.entities.RemoteKey
 import dev.robert.games.data.mappers.toDomain
-import dev.robert.games.data.mappers.toGameResultModel
+import dev.robert.games.data.mappers.toEntity
 import dev.robert.games.data.mappers.toModel
 import dev.robert.games.data.mediator.GamesRemoteMediator
 import dev.robert.games.data.mediator.GenresRemoteMediator
-import dev.robert.games.data.pager.SearchPager
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.game_details.GameDetailsModel
 import dev.robert.games.domain.model.genre.Genre
 import dev.robert.games.domain.repository.GamesRepository
+import dev.robert.network.Resource
 import dev.robert.network.apiservice.GamesApi
-import dev.robert.shared.utils.Resource
+import dev.robert.network.networkBoundResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.map
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class GamesRepositoryImpl(
@@ -35,25 +38,13 @@ class GamesRepositoryImpl(
 
     override fun getGameGenres(): Flow<PagingData<Genre>> {
         val cachedGenres = { appDb.genreEntityDao().getAllGenres() }
-        /*val mediatorHelper = RemoteMediatorHelper(
-            appDb = appDb,
-            entityClass = GenreEntity::class.java,
-            apiCall = {
-                val response = ApiResponse(
-                    resultDtos = gamesApi.getGameGenres()
-                )
-                response
-            },
-        )*/
         val genresRemoteMediator = GenresRemoteMediator(
             appDb = appDb,
             apiService = gamesApi
         )
         val pager = Pager(
             config = PagingConfig(
-                pageSize = NETWORK_PAGE_SIZE,
-                maxSize = NETWORK_PAGE_SIZE + (NETWORK_PAGE_SIZE * 2),
-                enablePlaceholders = false
+                pageSize = NETWORK_PAGE_SIZE
             ),
             remoteMediator = genresRemoteMediator,
             pagingSourceFactory = cachedGenres
@@ -63,21 +54,14 @@ class GamesRepositoryImpl(
         return pager.flowOn(Dispatchers.IO)
     }
 
-    override fun getGames(): Flow<PagingData<GamesResultModel>> {
+    override fun getBookmarkedGames(): Flow<PagingData<GamesResultModel>> {
         val cachedGames = {
-            appDb.gameEntityDao().getAllGames()
+            appDb.gameEntityDao().getBookmarkedGames()
         }
-        val gamesRemoteMediator = GamesRemoteMediator(
-            appDb = appDb,
-            apiService = gamesApi
-        )
         val pager = Pager(
             config = PagingConfig(
                 pageSize = NETWORK_PAGE_SIZE,
-                maxSize = NETWORK_PAGE_SIZE + (NETWORK_PAGE_SIZE * 2),
-                enablePlaceholders = false
             ),
-            remoteMediator = gamesRemoteMediator,
             pagingSourceFactory = cachedGames
         ).flow.map { pagingData ->
             pagingData.map { it.toDomain() }
@@ -85,22 +69,98 @@ class GamesRepositoryImpl(
         return pager.flowOn(Dispatchers.IO)
     }
 
-    override fun getHotGames(): Flow<Resource<List<GamesResultModel>>> = flow {
-        try {
-            val response = gamesApi.getGames(
-                page = 1,
-                pageSize = 10,
-                ordering = "-rating"
-            )
-            Timber.d("getHotGames: $response")
-            val games = response.results.map { it.toGameResultModel() }
-            emit(Resource.Success(games))
-        } catch (e: HttpException) {
-            emit(Resource.Failure(e))
-        } catch (e: IOException) {
-            emit(Resource.Failure(e))
+    override fun getGames(query: String?): Flow<PagingData<GamesResultModel>> {
+        val cachedGames = {
+            appDb.gameEntityDao().getAllGames()
         }
-    }.flowOn(Dispatchers.IO)
+        val gamesRemoteMediator = GamesRemoteMediator(
+            appDb = appDb,
+            apiService = gamesApi,
+            query = query
+        )
+        val pager = Pager(
+            config = PagingConfig(
+                pageSize = NETWORK_PAGE_SIZE,
+            ),
+            remoteMediator = gamesRemoteMediator,
+            pagingSourceFactory = cachedGames
+        ).flow.map { pagingData ->
+            pagingData.map { it.toDomain() }
+        }
+        return pager
+    }
+
+    override fun getGenresGames(genres: String?): Flow<PagingData<GamesResultModel>> {
+        val cachedGames = {
+            appDb.gameEntityDao().getGamesByGenre(genres)
+        }
+        val gamesRemoteMediator = GamesRemoteMediator(
+            appDb = appDb,
+            apiService = gamesApi,
+            genre = genres
+        )
+        val pager = Pager(
+            config = PagingConfig(
+                pageSize = NETWORK_PAGE_SIZE,
+            ),
+            remoteMediator = gamesRemoteMediator,
+            pagingSourceFactory = cachedGames
+        ).flow.map { pagingData ->
+            pagingData.map { it.toDomain() }
+        }
+        return pager
+    }
+
+    override fun getHotGames(refresh: Boolean): Flow<Resource<List<GamesResultModel>>> {
+        return networkBoundResource(
+            query = {
+                val games = appDb.gameEntityDao().getGamesAsFow(10)
+                games.map { gamesList ->
+                    gamesList.map { game ->
+                        game.toDomain()
+                    }
+                }
+            },
+            fetch = {
+                gamesApi.getGames(
+                    page = 1,
+                    pageSize = 10,
+                    ordering = "-rating"
+                )
+            },
+            saveFetchResult = { items ->
+                appDb.withTransaction {
+                    appDb.gameEntityDao().deleteAllGames()
+
+                    appDb.remoteKeyDao().insert(
+                        RemoteKey(
+                            id = "hot_games",
+                            lastUpdated = System.currentTimeMillis()
+                        )
+                    )
+                    appDb.gameEntityDao().insertGame(
+                        items.results.map {
+                            it.toEntity(searchQuery = null)
+                        })
+                }
+            }
+        ) {
+            if (refresh) {
+                true
+            } else {
+                val remoteKey = appDb.withTransaction {
+                    appDb.remoteKeyDao().getKeyByGame("hot_games")
+                }
+                if (remoteKey == null) {
+                    true
+                } else {
+                    val cacheTimeout = TimeUnit.HOURS.convert(1, TimeUnit.MILLISECONDS)
+
+                    (System.currentTimeMillis() - remoteKey.lastUpdated) < cacheTimeout
+                }
+            }
+        }
+    }
 
     override fun getGameDetails(id: Int): Flow<Resource<GameDetailsModel>> = flow {
         try {
@@ -123,8 +183,8 @@ class GamesRepositoryImpl(
         }
     }.flowOn(Dispatchers.IO)
 
-    override fun bookMarkGame(id: Int, isBookMarked : Boolean): Flow<Resource<Boolean>> = flow {
-        try{
+    override fun bookMarkGame(id: Int, isBookMarked: Boolean): Flow<Resource<Boolean>> = flow {
+        try {
             val game = appDb.gameEntityDao().getGameById(id)
             val updatedGame = game.copy(isBookMarked = isBookMarked)
             appDb.gameEntityDao().updateBookmark(id = id, bookmarked = !game.isBookMarked)
@@ -157,28 +217,6 @@ class GamesRepositoryImpl(
         }
         return pager.flowOn(Dispatchers.IO)
     }*/
-
-    override fun searchGames(
-        query: String,
-        searchExact: Boolean,
-    ): Flow<PagingData<GamesResultModel>> = flow<PagingData<GamesResultModel>> {
-        val searchPager = SearchPager(
-            apiService = gamesApi,
-            searchQuery = query,
-            searchExact = searchExact
-        )
-        Pager(
-            config = PagingConfig(
-                pageSize = NETWORK_PAGE_SIZE,
-                maxSize = NETWORK_PAGE_SIZE + (NETWORK_PAGE_SIZE * 2),
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = { searchPager }
-        ).flow.map { pagingData ->
-            pagingData.map { it.toGameResultModel() }
-        }
-        return@flow
-    }.flowOn(Dispatchers.IO)
 
 
     companion object {

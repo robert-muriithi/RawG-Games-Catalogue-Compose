@@ -18,6 +18,8 @@ sealed class GameDetailsEvents {
         val game: String
     ) : GameDetailsEvents()
 
+    data class RefreshEvent(val id: Int) : GameDetailsEvents()
+
     data class ErrorEvent(val message: String) : GameDetailsEvents()
 
     data class RetryEvent(val id: Int) : GameDetailsEvents()
