@@ -26,13 +26,13 @@ import dev.robert.games.domain.model.genre.Genre
 fun GenreItem(
     genre: Genre,
     modifier: Modifier = Modifier,
-    onClick: (Genre) -> Unit,
+    onClick: (String) -> Unit,
 ) {
     Box(
         modifier = modifier
             .size(100.dp)
             .clickable {
-                onClick(genre)
+                onClick(genre.name)
             }
             .shadow(4.dp)
             .clip(MaterialTheme.shapes.medium)

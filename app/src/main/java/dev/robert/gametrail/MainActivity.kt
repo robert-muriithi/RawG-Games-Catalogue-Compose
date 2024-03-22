@@ -50,6 +50,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.robert.favorites.presentation.BookmarksScreen
 import dev.robert.games.presentation.GameDetailsScreen
 import dev.robert.games.presentation.HomeScreen
+import dev.robert.games.presentation.genres.GenreDetailsScreen
 import dev.robert.gametrail.ui.theme.GameTrailTheme
 import dev.robert.navigation.navigation.Destinations
 import dev.robert.search.presentation.SearchScreen
@@ -168,6 +169,20 @@ fun NavigationGraph(navController: NavHostController) {
             gameId?.let { it1 ->
                 GameDetailsScreen(
                     gameId = it1,
+                )
+            }
+        }
+        composable(
+            Destinations.GenreDetailsScreen.route + "/{genres}",
+            arguments = listOf(
+                navArgument("genres") { type = NavType.StringType },
+            )
+        ) {
+            val genres = it.arguments?.getString("genres")
+            genres?.let { it1 ->
+                GenreDetailsScreen(
+                    genres = it1,
+                    navController = navController
                 )
             }
         }

@@ -9,6 +9,7 @@ import retrofit2.http.Query
 class SearchGamesUseCase (private val repository: GamesRepository) {
     operator fun invoke(
         searchQuery: String,
+        genres : String
     ) : Flow<PagingData<GamesResultModel>> {
         return repository.getGames(query = searchQuery)
     }

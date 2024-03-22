@@ -5,22 +5,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.navigation.NavOptions
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.genre.Genre
-import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetGamesUseCase
+import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetHotGamesUseCase
 import dev.robert.games.presentation.events.HomeScreenEvent
 import dev.robert.navigation.navigation.Destinations
 import dev.robert.network.Resource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -63,6 +60,12 @@ class HomeScreenViewModel @Inject constructor(
             is HomeScreenEvent.NavigateToCategory -> {
 //                navController.navigate(Destinations.CategoryScreen.route)
             }
+
+            is HomeScreenEvent.NavigateToGenreDetails -> {
+                navController.navigate(Destinations.GenreDetailsScreen.route + "/${event.genre}")
+            }
+
+            else -> {}
         }
     }
 

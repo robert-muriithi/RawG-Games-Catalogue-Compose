@@ -18,12 +18,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -84,6 +87,7 @@ import dev.robert.games.domain.model.genre.Genre
 import dev.robert.games.presentation.components.GameItem
 import dev.robert.games.presentation.components.GenreItem
 import dev.robert.games.presentation.components.NetworkImage
+import dev.robert.games.presentation.components.RatingBar
 import dev.robert.games.presentation.events.HomeScreenEvent
 import dev.robert.products.presentation.utils.ExitUntilCollapsedState
 import dev.robert.products.presentation.utils.ToolbarState
@@ -110,7 +114,7 @@ fun HomeScreen(
     val verticalGridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = Unit, block ={
+    LaunchedEffect(key1 = Unit, block = {
         viewModel.setNavController(navController)
     })
 
@@ -121,6 +125,7 @@ fun HomeScreen(
                 viewModel.getHotGames(refresh = true)
                 viewModel.getGames()
             }
+
             else -> {
                 viewModel.getHotGames(refresh = false)
             }
@@ -169,7 +174,9 @@ fun HomeScreen(
                 )
             },
             onGenreSelected = { genre ->
-                viewModel.setCategory(genre.name)
+                viewModel.onEvent(
+                    HomeScreenEvent.NavigateToGenreDetails(genre)
+                )
             },
             onNavigateToSearch = {
                 viewModel.onEvent(
@@ -205,9 +212,9 @@ fun GamesWidget(
 //    navigator: HomeScreenNavigator,
     modifier: Modifier = Modifier,
     onGameSelected: (Int) -> Unit,
-    onGenreSelected: (Genre) -> Unit,
+    onGenreSelected: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
-    onRefresh : () -> Unit
+    onRefresh: () -> Unit,
 ) {
     val toolbarHeightRange = with(LocalDensity.current) {
         MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
@@ -262,101 +269,81 @@ fun LazyGames(
     lazyGames: LazyPagingItems<GamesResultModel>?,
     verticalGridState: LazyGridState,
     genres: LazyPagingItems<Genre>?,
-    onGenreSelected: (Genre) -> Unit,
+    onGenreSelected: (String) -> Unit,
     hotGames: List<GamesResultModel>?,
     onNavigateToSearch: () -> Unit,
-    onRefresh : () -> Unit
+    onRefresh: () -> Unit,
 ) {
     val contentPadding = PaddingValues(8.dp)
 
 
-        LazyVerticalGrid(
-            userScrollEnabled = true,
-            contentPadding = contentPadding,
-            state = verticalGridState,
-            modifier = Modifier.fillMaxSize(),
-            columns = GridCells.Adaptive(150.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            content = {
-                item(
-                    span = {
-                        GridItemSpan(maxLineSpan)
-                    }
+    LazyVerticalGrid(
+        userScrollEnabled = true,
+        contentPadding = contentPadding,
+        state = verticalGridState,
+        modifier = Modifier.fillMaxSize(),
+        columns = GridCells.Adaptive(150.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        content = {
+            item(
+                span = {
+                    GridItemSpan(maxLineSpan)
+                }
+            ) {
+                HotGames(
+                    games = hotGames,
+                    onGameSelected = onGameSelected,
+                    modifier = Modifier.width(180.dp),
+                    onNavigateToSearch = onNavigateToSearch
+                )
+            }
+            item(
+                span = {
+                    GridItemSpan(maxLineSpan)
+                }
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    HotGames(
-                        games = hotGames,
-                        onGameSelected = onGameSelected,
-                        modifier = Modifier.width(180.dp),
-                        onNavigateToSearch = onNavigateToSearch
+                    Text(
+                        text = "Categories",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    CategoriesWidget(
+                        genres = genres,
+                        onGenreSelected = onGenreSelected
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "All Games",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        modifier = Modifier.padding(8.dp)
                     )
                 }
-                item(
-                    span = {
-                        GridItemSpan(maxLineSpan)
-                    }
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = "Categories",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
-                            ),
-                            modifier = Modifier.padding(8.dp)
-                        )
-                        CategoriesWidget(
-                            genres = genres,
-                            onGenreSelected = onGenreSelected
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "All Games",
-                            style = TextStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
-                            ),
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
-                }
-                lazyGames.let {
-                    it?.let { pagingItems ->
-                        items(pagingItems.itemCount) { index ->
-                            it[index]?.let { gameResult ->
-                                GameItem(
-                                    game = gameResult,
-                                    onClick = onGameSelected,
-                                )
-                            }
-                        }
-                    }
-                }
-                when {
-                    lazyGames?.loadState?.append is LoadState.Loading -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-
-                    lazyGames?.loadState?.append is LoadState.Error -> {
-                        val e = lazyGames.loadState.append as LoadState.Error
-                        item {
-                            Text(text = e.error.localizedMessage ?: "Unknown error")
+            }
+            lazyGames.let {
+                it?.let { pagingItems ->
+                    items(pagingItems.itemCount) { index ->
+                        it[index]?.let { gameResult ->
+                            GameItem(
+                                game = gameResult,
+                                onClick = onGameSelected,
+                                index = index
+                            )
                         }
                     }
                 }
             }
-        )
+        }
+    )
 
 }
 
@@ -439,14 +426,16 @@ fun ActionButtons(
     onNavigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row (
+    Row(
         modifier = modifier
-    ){
+    ) {
         IconButton(onClick = {
             onNavigateToSearch()
         }) {
-            Icon(imageVector = Icons.Default.Search,
-                contentDescription = null)
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null
+            )
         }
         IconButton(
             onClick = {}
@@ -535,43 +524,13 @@ fun HotGameItem(
         }
     }
 }
-@Composable
-fun RatingBar(
-    modifier: Modifier = Modifier,
-    rating: Double = 0.0,
-    maxStars: Int = 5,
-    starsColor: Color = Color.Yellow,
-) {
-    val filledStars = kotlin.math.floor(rating).toInt()
-    val unfilledStars = (maxStars - ceil(rating)).toInt()
-    val halfStar = !(rating.rem(1).equals(0.0))
-    Row(modifier = modifier.padding(horizontal = 5.dp, vertical = 5.dp)) {
-        repeat(filledStars) {
-            Icon(imageVector = Icons.Outlined.Star, contentDescription = null, tint = starsColor, modifier = Modifier.size(16.dp))
-        }
-        if (halfStar) {
-            Icon(
-                imageVector = Icons.Outlined.StarHalf,
-                contentDescription = null,
-                tint = starsColor,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-        repeat(unfilledStars) {
-            Icon(
-                imageVector = Icons.Outlined.StarOutline,
-                contentDescription = null,
-                tint = starsColor,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-    }
-}
+
+
 
 @Composable
 fun CategoriesWidget(
     genres: LazyPagingItems<Genre>?,
-    onGenreSelected: (Genre) -> Unit = {},
+    onGenreSelected: (String) -> Unit = {},
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -591,6 +550,7 @@ fun CategoriesWidget(
         }
     )
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
@@ -638,7 +598,6 @@ fun TopBar(
         }
     )
 }
-
 
 
 @Composable
