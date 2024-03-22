@@ -23,6 +23,7 @@ interface GamesApi {
         @Query("search_exact") searchExact: Boolean? = null,
         @Query("dates") dates: String? = null,
         @Query("ordering") ordering: String? = null,
+        @Query("genres") genres: String? = null,
     ): GamesResponseDto
 
     @GET("games/{id}")

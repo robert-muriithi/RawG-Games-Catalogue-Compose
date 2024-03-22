@@ -11,6 +11,7 @@ import dev.robert.games.domain.usecase.BookMarkGameUseCase
 import dev.robert.games.domain.usecase.GetGameDetailsUseCase
 import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetGamesUseCase
+import dev.robert.games.domain.usecase.GetGenreGamesUseCase
 import dev.robert.games.domain.usecase.GetHotGamesUseCase
 import dev.robert.games.domain.usecase.GetLocalGameUseCase
 import dev.robert.games.domain.usecase.SearchGamesUseCase
@@ -33,6 +34,12 @@ object GamesModule {
     fun provideGetGamesUseCase(
         repository: GamesRepository
     ): GetGamesUseCase = GetGamesUseCase(repository)
+
+    @Provides
+    @Singleton
+    fun provideGetGenreGamesUseCase(
+        repository: GamesRepository
+    ): GetGenreGamesUseCase = GetGenreGamesUseCase(repository)
 
     @Provides
     @Singleton
