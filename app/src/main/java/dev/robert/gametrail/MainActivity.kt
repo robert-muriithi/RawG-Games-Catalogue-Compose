@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavArgument
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -54,11 +52,8 @@ import dev.robert.games.presentation.GameDetailsScreen
 import dev.robert.games.presentation.HomeScreen
 import dev.robert.gametrail.ui.theme.GameTrailTheme
 import dev.robert.navigation.navigation.Destinations
-import dev.robert.gametrail.ui.theme.NavigationDemoTheme
-import dev.robert.gametrail.ui.theme.Theme
 import dev.robert.search.presentation.SearchScreen
 import dev.robert.settings.presentation.SettingsScreen
-import kotlinx.coroutines.Dispatchers
 
 
 @AndroidEntryPoint
@@ -66,9 +61,9 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         installSplashScreen()
+        enableEdgeToEdge()
         setContent {
             val theme by viewModel.theme.collectAsStateWithLifecycle()
             GameTrailTheme(
@@ -102,13 +97,6 @@ class MainActivity : ComponentActivity() {
                                     navController = navController,
                                     state = buttonsVisible,
                                     modifier = Modifier,
-                                    /*.height(bottomBarHeight)
-                                    .offset {
-                                        IntOffset(
-                                            x = 0,
-                                            y = -bottomBarOffsetHeightPx.floatValue.roundToInt()
-                                        )
-                                    })*/
                                 )
                             }
                         }, modifier = Modifier.bottomBarAnimatedScroll(
@@ -116,13 +104,6 @@ class MainActivity : ComponentActivity() {
                         )
                     ) {
                         Box(modifier = Modifier.padding(it)) {
-                            /*Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Bottom,
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Spacer(modifier = Modifier.height(bottomBarHeight))
-                            }*/
                             NavigationGraph(navController = navController)
                         }
                     }
@@ -195,7 +176,9 @@ fun NavigationGraph(navController: NavHostController) {
 
 @Composable
 fun BottomBar(
-    navController: NavHostController, state: MutableState<Boolean>, modifier: Modifier = Modifier,
+    navController: NavHostController,
+    state: MutableState<Boolean>,
+    modifier: Modifier = Modifier,
 ) {
     val screens = listOf(
         Destinations.HomeScreen,
@@ -218,10 +201,19 @@ fun BottomBar(
             screens.forEach { screen ->
                 NavigationBarItem(
                     label = {
-                        Text(text = screen.title!!)
+                        screen.title?.let { title ->
+                            Text(text = title, color = currentRoute?.let {
+                                if (it == screen.route) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface
+                            } ?: MaterialTheme.colorScheme.onSurface)
+                        }
                     },
                     icon = {
-                        Icon(imageVector = screen.icon!!, contentDescription = "")
+                        screen.icon?.let {
+                            Icon(imageVector = it,
+                                contentDescription = ""
+                            )
+                        }
                     },
                     selected = currentRoute == screen.route,
                     onClick = {

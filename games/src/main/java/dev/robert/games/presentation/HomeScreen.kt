@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,18 +24,16 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarHalf
@@ -45,16 +42,21 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -65,12 +67,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -79,8 +79,6 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.genre.Genre
 import dev.robert.games.presentation.components.GameItem
@@ -89,14 +87,12 @@ import dev.robert.games.presentation.components.NetworkImage
 import dev.robert.games.presentation.events.HomeScreenEvent
 import dev.robert.products.presentation.utils.ExitUntilCollapsedState
 import dev.robert.products.presentation.utils.ToolbarState
-import dev.robert.products.presentation.widgets.HomeCollapsibleToolbar
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import java.lang.Math.ceil
-import java.lang.Math.floor
 
 
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
@@ -106,30 +102,58 @@ fun HomeScreen(
     val genresState = viewModel.genresState.value
     val gamesState = viewModel.gamesState.value
     val hotGamesState = viewModel.hotGamesState.value
-    val selectedCategory = viewModel.selectedCategory.value
-
     val games = gamesState.data?.collectAsLazyPagingItems()
     val genres = genresState.data?.collectAsLazyPagingItems()
     val hotGames = hotGamesState.data
 
 
     val verticalGridState = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = Unit, block ={
         viewModel.setNavController(navController)
     })
 
+    val pullToRefreshState = rememberPullToRefreshState()
+    LaunchedEffect(key1 = pullToRefreshState, block = {
+        when (pullToRefreshState.isRefreshing) {
+            true -> {
+                viewModel.getHotGames(refresh = true)
+                viewModel.getGames()
+            }
+            else -> {
+                viewModel.getHotGames(refresh = false)
+            }
+        }
+    })
+
+    val showScrollToTopButton by remember {
+        derivedStateOf {
+            verticalGridState.firstVisibleItemIndex >= 5
+        }
+    }
 
     Scaffold(
-        /*topBar = {
-            TopBar(
-                genreState = genresState,
-                selectedCategory = selectedCategory,
-                onCategorySelected = viewModel::setCategory,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }*/
+
+        floatingActionButton = {
+            if (showScrollToTopButton) {
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            verticalGridState.scrollToItem(0)
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Scroll to top",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
     ) {
         GamesWidget(
             gamesState = gamesState,
@@ -147,6 +171,14 @@ fun HomeScreen(
             onGenreSelected = { genre ->
                 viewModel.setCategory(genre.name)
             },
+            onNavigateToSearch = {
+                viewModel.onEvent(
+                    HomeScreenEvent.NavigateToSearch
+                )
+            },
+            onRefresh = {
+                viewModel.getHotGames(refresh = true)
+            }
         )
     }
 
@@ -174,6 +206,8 @@ fun GamesWidget(
     modifier: Modifier = Modifier,
     onGameSelected: (Int) -> Unit,
     onGenreSelected: (Genre) -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onRefresh : () -> Unit
 ) {
     val toolbarHeightRange = with(LocalDensity.current) {
         MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
@@ -200,6 +234,8 @@ fun GamesWidget(
             onGameSelected = onGameSelected,
             genres = genres,
             onGenreSelected = onGenreSelected,
+            onNavigateToSearch = onNavigateToSearch,
+            onRefresh = onRefresh
             // contentPaddingValues = PaddingValues(bottom = if (toolbarState is FixedScrollFlagState) MinToolbarHeight else 0.dp)
         )
         /*HomeCollapsibleToolbar(
@@ -228,94 +264,100 @@ fun LazyGames(
     genres: LazyPagingItems<Genre>?,
     onGenreSelected: (Genre) -> Unit,
     hotGames: List<GamesResultModel>?,
+    onNavigateToSearch: () -> Unit,
+    onRefresh : () -> Unit
 ) {
     val contentPadding = PaddingValues(8.dp)
-    LazyVerticalGrid(
-        userScrollEnabled = true,
-        contentPadding = contentPadding,
-        state = verticalGridState,
-        modifier = Modifier.fillMaxSize(),
-        columns = GridCells.Adaptive(150.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        content = {
-            item(
-                span = {
-                    GridItemSpan(maxLineSpan)
-                }
-            ) {
-                HotGames(
-                    games = hotGames,
-                    onGameSelected = onGameSelected,
-                    modifier = Modifier.width(180.dp),
-                )
-            }
-            item(
-                span = {
-                    GridItemSpan(maxLineSpan)
-                }
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = "Categories",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        ),
-                        modifier = Modifier.padding(8.dp)
-                    )
-                    CategoriesWidget(
-                        genres = genres,
-                        onGenreSelected = onGenreSelected
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "All Games",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        ),
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-            }
-            lazyGames.let {
-                it?.let { pagingItems ->
-                    items(pagingItems.itemCount) { index ->
-                        it[index]?.let { gameResult ->
-                            GameItem(
-                                game = gameResult,
-                                onClick = onGameSelected,
-                            )
-                        }
-                    }
-                }
-            }
-            when {
-                lazyGames?.loadState?.append is LoadState.Loading -> {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                }
 
-                lazyGames?.loadState?.append is LoadState.Error -> {
-                    val e = lazyGames.loadState.append as LoadState.Error
-                    item {
-                        Text(text = e.error.localizedMessage ?: "Unknown error")
+
+        LazyVerticalGrid(
+            userScrollEnabled = true,
+            contentPadding = contentPadding,
+            state = verticalGridState,
+            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Adaptive(150.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            content = {
+                item(
+                    span = {
+                        GridItemSpan(maxLineSpan)
+                    }
+                ) {
+                    HotGames(
+                        games = hotGames,
+                        onGameSelected = onGameSelected,
+                        modifier = Modifier.width(180.dp),
+                        onNavigateToSearch = onNavigateToSearch
+                    )
+                }
+                item(
+                    span = {
+                        GridItemSpan(maxLineSpan)
+                    }
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = "Categories",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            ),
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        CategoriesWidget(
+                            genres = genres,
+                            onGenreSelected = onGenreSelected
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "All Games",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            ),
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+                lazyGames.let {
+                    it?.let { pagingItems ->
+                        items(pagingItems.itemCount) { index ->
+                            it[index]?.let { gameResult ->
+                                GameItem(
+                                    game = gameResult,
+                                    onClick = onGameSelected,
+                                )
+                            }
+                        }
+                    }
+                }
+                when {
+                    lazyGames?.loadState?.append is LoadState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+
+                    lazyGames?.loadState?.append is LoadState.Error -> {
+                        val e = lazyGames.loadState.append as LoadState.Error
+                        item {
+                            Text(text = e.error.localizedMessage ?: "Unknown error")
+                        }
                     }
                 }
             }
-        }
-    )
+        )
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -324,10 +366,18 @@ fun HotGames(
     games: List<GamesResultModel>?,
     modifier: Modifier = Modifier,
     onGameSelected: (Int) -> Unit,
+    onNavigateToSearch: () -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = {
         games?.size ?: 0
     })
+
+    LaunchedEffect(key1 = pagerState, block = {
+        snapshotFlow { pagerState.currentPage }.collect {
+            pagerState.animateScrollToPage(it)
+        }
+    })
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -344,17 +394,12 @@ fun HotGames(
                 ),
                 modifier = Modifier.padding(8.dp)
             )
-            FilterButton(
-                onFilter = {},
+            ActionButtons(
+                onNavigateToSearch = onNavigateToSearch,
                 modifier = Modifier
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
-        LaunchedEffect(key1 = pagerState, block = {
-            snapshotFlow { pagerState.currentPage }.collect {
-                pagerState.animateScrollToPage(it)
-            }
-        })
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth(),
@@ -390,17 +435,27 @@ fun HotGames(
 
 
 @Composable
-fun FilterButton(
-    onFilter: () -> Unit = {},
+fun ActionButtons(
+    onNavigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    IconButton(
-        onClick = {}
-    ) {
-        Icon(
-            imageVector = Icons.Default.FilterList,
-            contentDescription = null
-        )
+    Row (
+        modifier = modifier
+    ){
+        IconButton(onClick = {
+            onNavigateToSearch()
+        }) {
+            Icon(imageVector = Icons.Default.Search,
+                contentDescription = null)
+        }
+        IconButton(
+            onClick = {}
+        ) {
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = null
+            )
+        }
     }
 }
 
@@ -443,7 +498,7 @@ fun HotGameItem(
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = Color.White,
                         ),
                         modifier = Modifier.padding(horizontal = 5.dp)
                     )

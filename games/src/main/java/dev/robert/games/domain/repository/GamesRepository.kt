@@ -3,26 +3,25 @@ package dev.robert.games.domain.repository
 import androidx.paging.PagingData
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.game_details.GameDetailsModel
-import dev.robert.games.domain.model.genre.GameGenre
 import dev.robert.games.domain.model.genre.Genre
-import dev.robert.shared.utils.Resource
+import dev.robert.network.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface GamesRepository {
 
     fun getGameGenres() : Flow<PagingData<Genre>>
 
-    fun getGames() : Flow<PagingData<GamesResultModel>>
+    fun getGames(query: String?) : Flow<PagingData<GamesResultModel>>
 
-    fun searchGames(query: String, searchExact: Boolean = false): Flow<PagingData<GamesResultModel>>
-
-    fun getHotGames() : Flow<Resource<List<GamesResultModel>>>
+    fun getHotGames(refresh : Boolean) : Flow<Resource<List<GamesResultModel>>>
 
     fun getGameDetails(id: Int) : Flow<Resource<GameDetailsModel>>
 
     fun getLocalGameDetails(id: Int) : Flow<GamesResultModel>
 
     fun bookMarkGame(id: Int, isBookMarked: Boolean) : Flow<Resource<Boolean>>
+
+    fun getBookmarkedGames() : Flow<PagingData<GamesResultModel>>
 
     /*suspend fun getProduct(id: Int): Flow<Resource<Product>>
 

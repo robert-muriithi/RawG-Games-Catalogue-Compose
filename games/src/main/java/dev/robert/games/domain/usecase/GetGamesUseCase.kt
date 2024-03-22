@@ -7,7 +7,7 @@ import dev.robert.games.domain.repository.GamesRepository
 import kotlinx.coroutines.flow.Flow
 
 class GetGamesUseCase(private val repository: GamesRepository) {
-         operator fun invoke() : Flow<PagingData<GamesResultModel>> {
-            return repository.getGames()
+         operator fun invoke(query: String?) : Flow<PagingData<GamesResultModel>> {
+            return repository.getGames(query = query)
         }
 }

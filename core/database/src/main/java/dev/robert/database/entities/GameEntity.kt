@@ -33,7 +33,8 @@ data class GameEntity(
     val shortScreenshots: List<ShortScreenshot>? = null,
     val suggestionsCount: Int? = null,
     val tags: List<Tag>? = null,
-    val isBookMarked: Boolean = false
+    val isBookMarked: Boolean = false,
+    val searchQuery: String? = null
 )
 
 

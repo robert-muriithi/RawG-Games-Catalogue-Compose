@@ -11,7 +11,7 @@ import dev.robert.games.domain.usecase.BookMarkGameUseCase
 import dev.robert.games.domain.usecase.GetGameDetailsUseCase
 import dev.robert.games.domain.usecase.GetLocalGameUseCase
 import dev.robert.games.presentation.events.GameDetailsEvents
-import dev.robert.shared.utils.Resource
+import dev.robert.network.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -79,6 +79,7 @@ class GameDetailsViewModel @Inject constructor(
             is GameDetailsEvents.ShareGame -> shareGame(event.game)
             is GameDetailsEvents.ErrorEvent -> _eventsFlow.tryEmit(event)
             is GameDetailsEvents.RetryEvent -> getGameDetails(event.id)
+            is GameDetailsEvents.RefreshEvent -> getGameDetails(event.id)
         }
     }
 
