@@ -44,9 +44,7 @@ class GamesRepositoryImpl(
         )
         val pager = Pager(
             config = PagingConfig(
-                pageSize = NETWORK_PAGE_SIZE,
-                maxSize = NETWORK_PAGE_SIZE + (NETWORK_PAGE_SIZE * 2),
-                enablePlaceholders = false
+                pageSize = NETWORK_PAGE_SIZE
             ),
             remoteMediator = genresRemoteMediator,
             pagingSourceFactory = cachedGenres
@@ -63,8 +61,6 @@ class GamesRepositoryImpl(
         val pager = Pager(
             config = PagingConfig(
                 pageSize = NETWORK_PAGE_SIZE,
-                maxSize = NETWORK_PAGE_SIZE + (NETWORK_PAGE_SIZE * 2),
-                enablePlaceholders = false
             ),
             pagingSourceFactory = cachedGames
         ).flow.map { pagingData ->
@@ -85,21 +81,40 @@ class GamesRepositoryImpl(
         val pager = Pager(
             config = PagingConfig(
                 pageSize = NETWORK_PAGE_SIZE,
-                maxSize = NETWORK_PAGE_SIZE + (NETWORK_PAGE_SIZE * 2),
-                enablePlaceholders = false
             ),
             remoteMediator = gamesRemoteMediator,
             pagingSourceFactory = cachedGames
         ).flow.map { pagingData ->
             pagingData.map { it.toDomain() }
         }
-        return pager.flowOn(Dispatchers.IO)
+        return pager
+    }
+
+    override fun getGenresGames(genres: String?): Flow<PagingData<GamesResultModel>> {
+        val cachedGames = {
+            appDb.gameEntityDao().getGamesByGenre(genres)
+        }
+        val gamesRemoteMediator = GamesRemoteMediator(
+            appDb = appDb,
+            apiService = gamesApi,
+            genre = genres
+        )
+        val pager = Pager(
+            config = PagingConfig(
+                pageSize = NETWORK_PAGE_SIZE,
+            ),
+            remoteMediator = gamesRemoteMediator,
+            pagingSourceFactory = cachedGames
+        ).flow.map { pagingData ->
+            pagingData.map { it.toDomain() }
+        }
+        return pager
     }
 
     override fun getHotGames(refresh: Boolean): Flow<Resource<List<GamesResultModel>>> {
         return networkBoundResource(
             query = {
-                val games = appDb.gameEntityDao().getGamesAsFow(20)
+                val games = appDb.gameEntityDao().getGamesAsFow(10)
                 games.map { gamesList ->
                     gamesList.map { game ->
                         game.toDomain()
