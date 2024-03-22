@@ -23,6 +23,6 @@ interface GenreEntityDao {
     suspend fun deleteAll()
 
 
-    @Query(value = "SELECT * FROM genres")
+    @Query(value = "SELECT * FROM genres order by name asc")
     fun getAllGenres(): PagingSource<Int, GenreEntity>
 }
