@@ -86,6 +86,7 @@ import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.genre.Genre
 import dev.robert.games.presentation.components.GameItem
 import dev.robert.games.presentation.components.GenreItem
+import dev.robert.games.presentation.components.GenresRow
 import dev.robert.games.presentation.components.NetworkImage
 import dev.robert.games.presentation.components.RatingBar
 import dev.robert.games.presentation.events.HomeScreenEvent
@@ -491,29 +492,15 @@ fun HotGameItem(
                         ),
                         modifier = Modifier.padding(horizontal = 5.dp)
                     )
-                    LazyRow(
-                        content = {
-                            game.genres?.let {
-                                items(it.size) { index ->
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(4.dp)
-                                            .background(
-                                                MaterialTheme.colorScheme.primary,
-                                                MaterialTheme.shapes.small
-                                            )
-                                            .padding(4.dp)
-                                    ) {
-                                        Text(
-                                            text = game.genres[index].name,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    GenresRow(
+                        game = game,
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .background(
+                                MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
+                                MaterialTheme.shapes.small
+                            )
+                            .padding(4.dp)
                     )
                     RatingBar(
                         rating = game.rating ?: 0.0,

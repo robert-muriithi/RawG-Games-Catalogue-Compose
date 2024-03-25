@@ -47,7 +47,10 @@ fun GameItem(
             .clickable {
                 game.id?.let { onClick(it) }
             },
-        colors = CardDefaults.cardColors(contentColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = cardColor(),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        ),
     ) {
         Column(
 //            modifier = Modifier.background(Color.Green)
@@ -117,7 +120,7 @@ fun TitleSection(
         )
         Spacer(modifier = Modifier.size(8.dp))
         MetaCriticTag(
-            critic = game.metacritic ?: 0,
+            critic = game.metacritic.toString(),
             modifier = Modifier
         )
     }
@@ -193,8 +196,7 @@ fun PlatformIcons(
                         contentDescription = null,
                         modifier = Modifier
                             .size(20.dp)
-                            .padding(4.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                            .padding(4.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                     )
                 }
@@ -220,35 +222,20 @@ fun LineSeparator(
 }
 
 @Composable
-fun RowScope.GameTitle(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier.weight(1f)
-    )
-}
-
-@Composable
 fun MetaCriticTag(
-    critic: Int?,
+    critic: String,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
             .padding(4.dp)
-            .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)
+            .background(MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.3f), MaterialTheme.shapes.small)
             .padding(4.dp)
     ) {
         Text(
-            text = critic.toString(),
+            text =  if (critic == "") "-" else critic,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimary
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }

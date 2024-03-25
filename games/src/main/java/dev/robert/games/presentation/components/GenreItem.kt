@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,8 +43,6 @@ fun GenreItem(
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .graphicsLayer(alpha = 0.8f)
             ) {
                 NetworkImage(
                     url = genre.imageBackground,
@@ -55,16 +54,17 @@ fun GenreItem(
                 Text(
                     text = genre.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = Color.White,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(Color.Black.copy(alpha = 0.5f))
                         .padding(4.dp)
-                        .graphicsLayer(alpha = 0.8f)
+                        .align(Alignment.BottomCenter)
+
                 )
             }
     }
