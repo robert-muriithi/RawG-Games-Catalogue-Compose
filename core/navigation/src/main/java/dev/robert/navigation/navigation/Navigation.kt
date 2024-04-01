@@ -1,37 +1,38 @@
 package dev.robert.navigation.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bookmarks
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.ui.graphics.vector.ImageVector
+import dev.robert.shared.R
+
 sealed class Destinations(
     val route: String,
     val title: String? = null,
-    val icon: ImageVector? = null
+    val iconOutlined: Int? = null,
+    val iconFilled: Int? = null
 ) {
      data object HomeScreen : Destinations(
         route = "home_screen",
         title = "Home",
-        icon = Icons.Outlined.Home
+        iconOutlined = R.drawable.home_outline,
+        iconFilled = R.drawable.home_filled
     )
 
     data object SearchScreen : Destinations(
         route = "search_screen",
         title = "Search",
-        icon = Icons.Outlined.Search
+        iconOutlined = R.drawable.search,
+        iconFilled = R.drawable.search,
     )
     data object BookMarksScreen : Destinations(
         route = "bookmarks_screen",
         title = "Bookmarks",
-        icon = Icons.Outlined.Bookmarks
+        iconOutlined = R.drawable.bookmark_outline,
+        iconFilled = R.drawable.bookmark_filled
     )
 
     data object SettingsScreen : Destinations(
         route = "settings_screen",
         title = "Settings",
-        icon = Icons.Outlined.Settings
+        iconOutlined = R.drawable.settings_outline,
+        iconFilled = R.drawable.settings_filled
     )
 
     data object GameDetailsScreen : Destinations(

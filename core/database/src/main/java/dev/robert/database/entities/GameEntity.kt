@@ -34,7 +34,8 @@ data class GameEntity(
     val suggestionsCount: Int? = null,
     val tags: List<Tag>? = null,
     val isBookMarked: Boolean = false,
-    val searchQuery: String? = null
+    val searchQuery: String? = null,
+    val recentSearch : Boolean = false
 )
 
 

@@ -1,4 +1,4 @@
-package dev.robert.products.presentation.utils
+package dev.robert.shared.utils
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

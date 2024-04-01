@@ -9,4 +9,6 @@ sealed class HomeScreenEvent {
     data class NavigateToGenreDetails(val genre: String) : HomeScreenEvent()
 
     data class NavigateToCategory(val category: String) : HomeScreenEvent()
+
+    data class BookMarkGame(val id: Int, val isBookMarked: Boolean) : HomeScreenEvent()
 }

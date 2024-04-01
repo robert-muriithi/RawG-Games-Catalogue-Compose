@@ -9,8 +9,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -34,6 +36,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -92,6 +95,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
                     Scaffold(
+                        contentWindowInsets = WindowInsets(0.dp),
                         bottomBar = {
                             if (shouldShouldBottomBar) {
                                 BottomBar(
@@ -145,9 +149,7 @@ fun NavigationGraph(navController: NavHostController) {
             )
         }
         composable(Destinations.SearchScreen.route) {
-            SearchScreen(
-                navController = navController
-            )
+            SearchScreen()
         }
         composable(Destinations.BookMarksScreen.route) {
             BookmarksScreen(
@@ -212,7 +214,6 @@ fun BottomBar(
         ) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-
             screens.forEach { screen ->
                 NavigationBarItem(
                     label = {
@@ -224,9 +225,22 @@ fun BottomBar(
                         }
                     },
                     icon = {
-                        screen.icon?.let {
-                            Icon(imageVector = it,
-                                contentDescription = ""
+                        (if (currentRoute == screen.route) screen.iconFilled
+                        else screen.iconOutlined)?.let {
+                            painterResource(
+                                id = it
+                            )
+                        }?.let { painter ->
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                painter = painter,
+                                contentDescription = null,
+                                tint = currentRoute?.let {
+                                    if (it == screen.route)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurface
+                                } ?: MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },

@@ -48,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import dev.robert.products.presentation.utils.ExitUntilCollapsedState
-import dev.robert.products.presentation.utils.ToolbarState
+import dev.robert.shared.utils.ExitUntilCollapsedState
+import dev.robert.shared.utils.ToolbarState
 
 
 private val MinToolbarHeight = 96.dp

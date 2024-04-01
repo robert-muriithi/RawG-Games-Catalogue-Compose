@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GameDao {
-    @Query(value = "SELECT * FROM games")
+    @Query(value = "SELECT * FROM games ORDER BY name ASC")
     fun getAllGames(): PagingSource<Int, GameEntity>
 
     @Query(value = "SELECT * FROM games WHERE id = :id")
@@ -39,8 +39,17 @@ interface GameDao {
     fun getGamesAsFow(limit: Int): Flow<List<GameEntity>>
 
     @Query("SELECT * FROM games WHERE isBookMarked = 1")
-    fun getBookmarkedGames(): PagingSource<Int, GameEntity>
+    fun getBookmarkedGames(): Flow<List<GameEntity>>
+
+    @Query("UPDATE games SET isBookMarked = 0")
+    suspend fun clearBookmarks()
 
     @Query("SELECT * FROM games WHERE genreResponseDtos LIKE '%'|| :genre ||'%'")
     fun getGamesByGenre(genre: String? = ""): PagingSource<Int, GameEntity>
+
+    @Query("UPDATE games SET recentSearch = :recentSearch WHERE id = :id")
+    suspend fun updateRecentSearch(id: Int, recentSearch: Boolean)
+
+    @Query("SELECT * FROM games WHERE recentSearch = 1 order by name desc limit 10")
+    fun getRecentSearches(): Flow<List<GameEntity>>
 }

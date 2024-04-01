@@ -1,4 +1,4 @@
-package dev.robert.games.presentation.components
+package dev.robert.designsystem.presentation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

@@ -54,20 +54,6 @@ class GamesRepositoryImpl(
         return pager.flowOn(Dispatchers.IO)
     }
 
-    override fun getBookmarkedGames(): Flow<PagingData<GamesResultModel>> {
-        val cachedGames = {
-            appDb.gameEntityDao().getBookmarkedGames()
-        }
-        val pager = Pager(
-            config = PagingConfig(
-                pageSize = NETWORK_PAGE_SIZE,
-            ),
-            pagingSourceFactory = cachedGames
-        ).flow.map { pagingData ->
-            pagingData.map { it.toDomain() }
-        }
-        return pager.flowOn(Dispatchers.IO)
-    }
 
     override fun getGames(query: String?): Flow<PagingData<GamesResultModel>> {
         val cachedGames = {

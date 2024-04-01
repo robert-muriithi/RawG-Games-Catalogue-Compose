@@ -3,11 +3,12 @@ package dev.robert.games.presentation.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,31 +17,43 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.RememberObserver
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.robert.designsystem.presentation.NetworkImage
+import dev.robert.designsystem.presentation.cardColor
 import dev.robert.games.domain.model.game.GamesResultModel
-import dev.robert.games.utils.ConverterDate
-import dev.robert.games.utils.convertDateTo
-import dev.robert.games.utils.getPlatformIcon
+import dev.robert.shared.utils.ConverterDate
+import dev.robert.shared.utils.convertDateTo
+import dev.robert.shared.utils.getPlatformIcon
 
 @Composable
 fun GameItem(
     game: GamesResultModel,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    index : Int
+    onBookMark : (Int, Boolean) -> Unit,
 ) {
+    var isBookMarked by remember {
+        mutableStateOf(game.isBookMarked)
+    }
+
     Card(
         modifier = modifier
             .width(220.dp)
@@ -53,7 +66,6 @@ fun GameItem(
         ),
     ) {
         Column(
-//            modifier = Modifier.background(Color.Green)
             modifier = Modifier.fillMaxWidth()
         ) {
             Box {
@@ -64,14 +76,30 @@ fun GameItem(
                         .height(120.dp),
                     contentDescription = game.name ?: "Game Image"
                 )
-                Text(
-                    text = "${index + 1}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .align(Alignment.TopStart)
-                )
+                IconButton(
+                    modifier = Modifier.
+                    indication(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(bounded = true)
+                    )
+                        .align(Alignment.TopStart),
+                    onClick = {
+                        isBookMarked = !isBookMarked
+                        game.id?.let { id ->
+                            onBookMark(id, isBookMarked)
+                        }
+                }) {
+                    Image(
+                        painter = painterResource(id = if (isBookMarked) {
+                            dev.robert.shared.R.drawable.bookmark_filled
+                        } else {
+                            dev.robert.shared.R.drawable.bookmark_outline
+                        }),
+                        contentDescription = "Bookmark",
+                        modifier = Modifier.size(20.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                    )
+                }
             }
             GameCardContent(game = game)
         }
@@ -89,95 +117,78 @@ fun GameCardContent(
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        TitleSection(game = game)
-        LineSeparator()
-        PlatformIcons(game = game)
-        LineSeparator()
-        GameReleaseDate(game = game)
-        LineSeparator()
-        GameGenres(game = game)
-    }
-}
-
-@Composable
-fun TitleSection(
-    modifier: Modifier = Modifier,
-    game: GamesResultModel,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = game.name ?: "Hello",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth(.5f)
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        MetaCriticTag(
-            critic = game.metacritic.toString(),
+        Row(
             modifier = Modifier
-        )
-    }
-}
-
-@Composable
-fun GameReleaseDate(
-    game: GamesResultModel,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = "Release Date:",
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-        game.released?.let {
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = it.convertDateTo(ConverterDate.FULL_DATE),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-    }
-}
-
-@Composable
-fun GameGenres(
-    game: GamesResultModel,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Text(
-            text = "Genres:",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        game.genres?.map { genre ->
-            Text(
-                text = genre.name,
-                style = MaterialTheme.typography.labelSmall,
+                text = game.name ?: "Hello",
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(4.dp),
-                textDecoration = TextDecoration.Underline
+                modifier = Modifier.fillMaxWidth(.5f)
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            MetaCriticTag(
+                critic = game.metacritic.toString(),
+                modifier = Modifier
             )
         }
+        LineSeparator()
+        LazyRow(
+            content = {
+                game.parentPlatforms?.let { platforms ->
+                    items(platforms.size) {
+                        val platform = game.parentPlatforms[it].platform.name
+                        Image(
+                            painter = painterResource(id = getPlatformIcon(platform)),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(4.dp),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                        )
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+        )
+        LineSeparator()
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Release Date:",
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.size(4.dp))
+            game.released?.let {
+                Text(
+                    text = it.convertDateTo(ConverterDate.FULL_DATE),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+        LineSeparator()
+        GenresRow(
+            game = game,
+            modifier = Modifier
+                .padding(2.dp)
+                .background(
+                    MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
+                    MaterialTheme.shapes.small
+                )
+                .padding(4.dp)
+        )
     }
 }
 
@@ -212,13 +223,10 @@ fun PlatformIcons(
 fun LineSeparator(
     modifier: Modifier = Modifier,
 ) {
-
-
-    Divider(
+    HorizontalDivider(
         modifier = modifier
             .height(1.dp)
     )
-
 }
 
 @Composable
@@ -229,7 +237,10 @@ fun MetaCriticTag(
     Box(
         modifier = modifier
             .padding(4.dp)
-            .background(MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.3f), MaterialTheme.shapes.small)
+            .background(
+                MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.3f),
+                MaterialTheme.shapes.small
+            )
             .padding(4.dp)
     ) {
         Text(
