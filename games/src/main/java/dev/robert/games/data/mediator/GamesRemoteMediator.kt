@@ -54,7 +54,7 @@ class GamesRemoteMediator(
                 search = query,
                 genres = genre?.toString()
             )
-            val games = apiResponse.results.sortedByDescending { it.metacritic }
+            val games = apiResponse.results.sortedByDescending { it.name }
 
              val endOfPaginationReached = games.isEmpty()
              appDb.withTransaction {
