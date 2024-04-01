@@ -1,4 +1,4 @@
-package dev.robert.games.utils
+package dev.robert.shared.utils
 import androidx.compose.ui.graphics.Color
 import dev.robert.shared.R
 import org.threeten.bp.LocalDate

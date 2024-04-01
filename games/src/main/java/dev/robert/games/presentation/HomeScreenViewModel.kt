@@ -10,6 +10,7 @@ import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.genre.Genre
+import dev.robert.games.domain.usecase.BookMarkGameUseCase
 import dev.robert.games.domain.usecase.GetGamesUseCase
 import dev.robert.games.domain.usecase.GetGenresUseCase
 import dev.robert.games.domain.usecase.GetHotGamesUseCase
@@ -26,7 +27,8 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val getGamesUseCase: GetGamesUseCase,
     private val getGenresUseCase: GetGenresUseCase,
-    private val getHotGamesUseCase: GetHotGamesUseCase
+    private val getHotGamesUseCase: GetHotGamesUseCase,
+    private val bookMarkGameUseCase: BookMarkGameUseCase
 ) : ViewModel() {
 
     private val _selectedCategory = mutableStateOf("All")
@@ -65,7 +67,10 @@ class HomeScreenViewModel @Inject constructor(
                 navController.navigate(Destinations.GenreDetailsScreen.route + "/${event.genre}")
             }
 
-            else -> {}
+            is HomeScreenEvent.BookMarkGame -> {
+                bookmarkGame(event.id, event.isBookMarked)
+            }
+
         }
     }
 
@@ -111,6 +116,12 @@ class HomeScreenViewModel @Inject constructor(
                 isLoading = false,
                 data = genres
             )
+        }
+    }
+
+    private fun bookmarkGame(id: Int, isBookMarked: Boolean) {
+        viewModelScope.launch {
+            bookMarkGameUseCase.invoke(id = id, isBookMarked = isBookMarked)
         }
     }
 

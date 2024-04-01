@@ -1,7 +1,5 @@
-package dev.robert.database.entities
+package dev.robert.search.domain.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import dev.robert.network.dto.dto.games.EsrbRating
 import dev.robert.network.dto.dto.games.GenreResponseDto
 import dev.robert.network.dto.dto.games.ParentPlatformDto
@@ -9,15 +7,14 @@ import dev.robert.network.dto.dto.games.Rating
 import dev.robert.network.dto.dto.games.ShortScreenshot
 import dev.robert.network.dto.dto.games.Tag
 
-@Entity(tableName = "games")
-data class GameEntity(
+data class Game(
     val added: Int? = null,
     val backgroundImage: String? = null,
     val clip: String? = null,
     val dominantColor: String? = null,
     val esrbRating: EsrbRating? = null,
     val genreResponseDtos: List<GenreResponseDto>? = null,
-    @PrimaryKey val id: Int,
+    val id: Int,
     val metacritic: Int? = null,
     val name: String? = null,
     val parentPlatformDtos: List<ParentPlatformDto>? = null,
@@ -37,5 +34,3 @@ data class GameEntity(
     val searchQuery: String? = null,
     val recentSearch : Boolean = false
 )
-
-

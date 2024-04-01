@@ -2,18 +2,32 @@ package dev.robert.games.presentation.genres
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.PagingData
@@ -27,6 +41,7 @@ import dev.robert.games.presentation.events.GenreGamesEvents
 import kotlinx.coroutines.flow.Flow
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenreDetailsScreen(
     viewModel: GenreDetailsViewModel = hiltViewModel(),
@@ -39,7 +54,46 @@ fun GenreDetailsScreen(
         viewModel.setNavController(navController)
         viewModel.getGames(genres = genres.lowercase(Locale.ROOT))
     })
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    LaunchedEffect(key1 = pullToRefreshState, block = {
+        when (pullToRefreshState.isRefreshing) {
+            true -> {
+                viewModel.getGames(genres = genres.lowercase(Locale.ROOT))
+                pullToRefreshState.endRefresh()
+            }
+            else -> Unit
+        }
+    })
+
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .nestedScroll(pullToRefreshState.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = {
+                Text(
+                    text = "$genres Games",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            },
+                navigationIcon = {
+                IconButton(onClick = {
+                    navController.popBackStack()
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+            },
+                scrollBehavior = scrollBehavior,
+            )
+        },
         content = {
             Box(
                 modifier = Modifier
@@ -101,7 +155,7 @@ fun ErrorComponent(
 
 
 @Composable
-fun GenreDetailsContent(
+fun BoxScope.GenreDetailsContent(
     games: LazyPagingItems<GamesResultModel>?,
     state: State<StateHolder<Flow<PagingData<GamesResultModel>>>>,
     onClick: (Int) -> Unit,
@@ -112,21 +166,29 @@ fun GenreDetailsContent(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GenreDetailsList(
+fun BoxScope.GenreDetailsList(
     gamesState: LazyPagingItems<GamesResultModel>,
     onClick: (Int) -> Unit,
 ) {
     val state = rememberLazyListState()
+    val pullToRefreshState = rememberPullToRefreshState()
     LazyColumn(
         state = state,
         modifier = Modifier.fillMaxSize()
     ) {
-        items(gamesState.itemCount) { index ->
-            gamesState[index]?.let { game ->
-                HorizontalGameItem(game = game, onClick = onClick)
+        if (!pullToRefreshState.isRefreshing){
+            items(gamesState.itemCount) { index ->
+                gamesState[index]?.let { game ->
+                    HorizontalGameItem(game = game, onClick = onClick)
+                }
             }
         }
     }
+    PullToRefreshContainer(
+        modifier = Modifier.align(Alignment.TopCenter),
+        state = pullToRefreshState,
+    )
 }
 

@@ -22,7 +22,6 @@ interface GamesRepository {
 
     fun bookMarkGame(id: Int, isBookMarked: Boolean) : Flow<Resource<Boolean>>
 
-    fun getBookmarkedGames() : Flow<PagingData<GamesResultModel>>
 
     /*suspend fun getProduct(id: Int): Flow<Resource<Product>>
 
