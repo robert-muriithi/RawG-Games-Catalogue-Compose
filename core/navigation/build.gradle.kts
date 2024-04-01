@@ -66,5 +66,5 @@ android {
 }
 
 dependencies {
-
+    implementation(project(":core:shared"))
 }
