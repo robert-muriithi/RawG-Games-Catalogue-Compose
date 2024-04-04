@@ -12,7 +12,6 @@ import dev.robert.games.data.mappers.toEntity
 import dev.robert.network.apiservice.GamesApi
 import retrofit2.HttpException
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class GamesRemoteMediator(
@@ -52,7 +51,7 @@ class GamesRemoteMediator(
                 page = page,
                 pageSize = state.config.pageSize,
                 search = query,
-                genres = genre?.toString()
+                genres = genre
             )
             val games = apiResponse.results.sortedByDescending { it.name }
 
@@ -60,6 +59,7 @@ class GamesRemoteMediator(
              appDb.withTransaction {
 
                  if(loadType == LoadType.REFRESH) {
+                     appDb.remoteKeyDao().delete("_game")
                      appDb.gameEntityDao().deleteAllGames()
                  }
                  val nextPage = if(games.isEmpty()) {
@@ -68,7 +68,7 @@ class GamesRemoteMediator(
                      page?.plus(1)
                  }
 
-                 remoteKeyDao.insert(RemoteKey(
+                 remoteKeyDao.insertOrReplace(RemoteKey(
                      id = "_game",
                      next = nextPage,
                      lastUpdated = System.currentTimeMillis()
@@ -85,8 +85,18 @@ class GamesRemoteMediator(
            return MediatorResult.Error(e)
         }
     }
-
     override suspend fun initialize(): InitializeAction {
+        return if(appDb.gameEntityDao().isTableEmpty() == 0) {
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        } else {
+            InitializeAction.SKIP_INITIAL_REFRESH
+        }
+    }
+
+    /*override suspend fun initialize(): InitializeAction {
+        return InitializeAction.SKIP_INITIAL_REFRESH
+    }*/
+    /*override suspend fun initialize(): InitializeAction {
         val remoteKey = appDb.withTransaction {
             remoteKeyDao.getKeyByGame("_game")
         } ?: return InitializeAction.LAUNCH_INITIAL_REFRESH
@@ -98,5 +108,5 @@ class GamesRemoteMediator(
         } else {
             InitializeAction.LAUNCH_INITIAL_REFRESH
         }
-    }
+    }*/
 }

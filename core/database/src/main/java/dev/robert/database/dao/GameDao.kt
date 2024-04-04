@@ -52,4 +52,8 @@ interface GameDao {
 
     @Query("SELECT * FROM games WHERE recentSearch = 1 order by name desc limit 10")
     fun getRecentSearches(): Flow<List<GameEntity>>
+
+
+    @Query("SELECT COUNT(*) FROM games")
+    suspend fun isTableEmpty(): Int
 }

@@ -6,12 +6,10 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import dev.robert.database.database.GamesDatabase
-import dev.robert.database.entities.GameEntity
 import dev.robert.database.entities.GenreEntity
+import dev.robert.database.entities.RemoteKey
 import dev.robert.games.data.mappers.toEntity
-import dev.robert.games.data.mappers.toGenresDomain
 import dev.robert.network.apiservice.GamesApi
-import dev.robert.network.dto.dto.category.GenreResponse
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -20,43 +18,65 @@ class GenresRemoteMediator(
     private val appDb: GamesDatabase,
     private val apiService: GamesApi
 ) : RemoteMediator<Int, GenreEntity>() {
+    private val remoteKeyDao = appDb.remoteKeyDao()
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, GenreEntity>,
     ): MediatorResult {
-        return try {
-            val page = when(loadType){
-                LoadType.REFRESH -> 1
-                LoadType.PREPEND ->{
-                    return MediatorResult.Success(endOfPaginationReached = true)
+        try {
+            val page= when(loadType) {
+                LoadType.REFRESH -> {
+                    1
+                }
+                LoadType.PREPEND -> {
+                    return MediatorResult.Success(true)
                 }
                 LoadType.APPEND -> {
-                    val lastItem = state.lastItemOrNull()
-                    if(lastItem == null){
-                        1
-                    }else{
-                        (lastItem.id / state.config.pageSize) + 1
+                    val remoteKey = appDb.withTransaction {
+                        remoteKeyDao.getKeyByGame("_genre")
+                    } ?: return MediatorResult.Success(true)
+
+                    if(remoteKey.next == null) {
+                        return MediatorResult.Success(true)
                     }
+
+                    remoteKey.next
                 }
             }
             val apiResponse = apiService.getGameGenres(
                 page = page
             )
-            val genres = apiResponse.genreResponses
+            val genres = apiResponse.genreResponses.sortedByDescending { it.name }
 
+            val endOfPaginationReached = genres.isEmpty()
             appDb.withTransaction {
-                if(loadType == LoadType.REFRESH){
-                    appDb.genreEntityDao().deleteAll()
+
+                if(loadType == LoadType.REFRESH) {
+                    appDb.gameEntityDao().deleteAllGames()
                 }
-                val genresEntity = genres.map { it.toEntity() }
-                appDb.genreEntityDao().insertAll(genresEntity)
+                val nextPage = if(genres.isEmpty()) {
+                    null
+                } else {
+                    page?.plus(1)
+                }
+
+                remoteKeyDao.insert(
+                    RemoteKey(
+                    id = "_genre",
+                    next = nextPage,
+                    lastUpdated = System.currentTimeMillis()
+                )
+                )
+                appDb.genreEntityDao().insertAll(genres.map {
+                    it.toEntity()
+                })
             }
-            MediatorResult.Success(endOfPaginationReached = genres.isEmpty())
+            return  MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
         }catch (e: HttpException){
-            MediatorResult.Error(e)
+            return MediatorResult.Error(e)
         }
         catch (e: IOException){
-            MediatorResult.Error(e)
+            return MediatorResult.Error(e)
         }
     }
 }

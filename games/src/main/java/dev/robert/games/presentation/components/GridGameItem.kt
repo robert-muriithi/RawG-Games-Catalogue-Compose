@@ -85,12 +85,10 @@ fun GameItem(
                         .align(Alignment.TopStart),
                     onClick = {
                         isBookMarked = !isBookMarked
-                        game.id?.let { id ->
-                            onBookMark(id, isBookMarked)
-                        }
+                        onBookMark(game.id!!, isBookMarked)
                 }) {
                     Image(
-                        painter = painterResource(id = if (isBookMarked) {
+                        painter = painterResource(id = if (isBookMarked == true) {
                             dev.robert.shared.R.drawable.bookmark_filled
                         } else {
                             dev.robert.shared.R.drawable.bookmark_outline

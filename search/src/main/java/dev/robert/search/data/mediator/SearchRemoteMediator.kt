@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit
 /**
  * RemoteMediator for search results.
  */
+/*
 @Deprecated("Not in use anymore.")
 @OptIn(ExperimentalPagingApi::class)
 class SearchRemoteMediator(
@@ -26,7 +27,7 @@ class SearchRemoteMediator(
     private val query: String? = null,
 ) : RemoteMediator<Int, GameEntity>() {
 
-    private val remoteKeyDao = appDb.remoteKeyDao()
+    private val remoteKeyDao = appDb.gamesRemoteKeyDao()
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, GameEntity>,
@@ -74,7 +75,7 @@ class SearchRemoteMediator(
                 }
 
                 remoteKeyDao.insert(
-                    RemoteKey(
+                    GamesRemoteKey(
                         id = "_search",
                         next = nextPage,
                         lastUpdated = System.currentTimeMillis()
@@ -105,4 +106,4 @@ class SearchRemoteMediator(
             InitializeAction.LAUNCH_INITIAL_REFRESH
         }
     }
-}
+}*/

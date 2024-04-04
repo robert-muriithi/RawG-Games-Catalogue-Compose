@@ -39,7 +39,7 @@ class BookmarksViewModel @Inject constructor(
     }
    private fun getBookmarks() {
         _uiState.value = uiState.value.copy(isLoading = true)
-        viewModelScope.launch(_handler) {
+        viewModelScope.launch {
             getBookmarksUseCase.invoke().collectLatest {
                 when (it) {
                     is Resource.Failure -> {
