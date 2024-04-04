@@ -36,3 +36,7 @@ fun Game.toEntity() : GameEntity {
         recentSearch = recentSearch
     )
 }
+
+fun List<GameEntity>.toDomainList() : List<Game> {
+    return map { it.toDomain() }
+}

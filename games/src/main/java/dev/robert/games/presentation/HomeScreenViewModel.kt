@@ -19,6 +19,7 @@ import dev.robert.navigation.navigation.Destinations
 import dev.robert.network.Resource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,7 +29,7 @@ class HomeScreenViewModel @Inject constructor(
     private val getGamesUseCase: GetGamesUseCase,
     private val getGenresUseCase: GetGenresUseCase,
     private val getHotGamesUseCase: GetHotGamesUseCase,
-    private val bookMarkGameUseCase: BookMarkGameUseCase
+    private val bookMarkGameUseCase: BookMarkGameUseCase,
 ) : ViewModel() {
 
     private val _selectedCategory = mutableStateOf("All")
@@ -48,13 +49,15 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun onEvent(event: HomeScreenEvent) {
-        when(event) {
+        when (event) {
             is HomeScreenEvent.NavigateToGameDetails -> {
                 navController.navigate(Destinations.GameDetailsScreen.route + "/${event.id}")
             }
+
             is HomeScreenEvent.NavigateToSearch -> {
                 navController.navigate(Destinations.SearchScreen.route)
             }
+
             is HomeScreenEvent.NavigateToBookmarks -> {
                 navController.navigate(Destinations.BookMarksScreen.route)
             }
@@ -106,7 +109,8 @@ class HomeScreenViewModel @Inject constructor(
     private val _hotGamesState = mutableStateOf(StateHolder<List<GamesResultModel>>())
     val hotGamesState: State<StateHolder<List<GamesResultModel>>> = _hotGamesState
 
-    private fun getProductCategories()  {
+
+    private fun getGamesGenres() {
         _genresState.value = genresState.value.copy(
             isLoading = true
         )
@@ -121,23 +125,24 @@ class HomeScreenViewModel @Inject constructor(
 
     private fun bookmarkGame(id: Int, isBookMarked: Boolean) {
         viewModelScope.launch {
-            bookMarkGameUseCase.invoke(id = id, isBookMarked = isBookMarked)
+            bookMarkGameUseCase.invoke(id, isBookMarked).collect()
         }
     }
 
-    fun getHotGames(refresh : Boolean) {
+    fun getHotGames(refresh: Boolean) {
         _hotGamesState.value = hotGamesState.value.copy(
             isLoading = true
         )
         viewModelScope.launch {
             getHotGamesUseCase.invoke(refresh).collectLatest {
-                when(it) {
+                when (it) {
                     is Resource.Failure -> {
                         _hotGamesState.value = hotGamesState.value.copy(
                             isLoading = false,
                             error = it.throwable.message ?: "Unknown error"
                         )
                     }
+
                     is Resource.Success -> {
                         _hotGamesState.value = hotGamesState.value.copy(
                             isLoading = false,
@@ -146,15 +151,15 @@ class HomeScreenViewModel @Inject constructor(
                     }
                 }
             }
-            }
+        }
     }
 
-    fun getGames(searchTerm: String? = null) {
+    private fun getGames(searchTerm: String? = null) {
         _gamesState.value = gamesState.value.copy(
             isLoading = true
         )
         viewModelScope.launch {
-         val games = getGamesUseCase.invoke(query = searchTerm).cachedIn(viewModelScope)
+            val games = getGamesUseCase.invoke(query = searchTerm).cachedIn(viewModelScope)
             _gamesState.value = gamesState.value.copy(
                 isLoading = false,
                 data = games
@@ -162,15 +167,11 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
-
     init {
         viewModelScope.launch {
-            val hotGames = async { getHotGames(false) }
-            hotGames.await()
-            val categories = async { getProductCategories() }
-            categories.await()
-            val games = async { getGames() }
-            games.await()
+            async { getGamesGenres() }.await()
+            async { getGames() }.await()
+            async { getHotGames(false) }.await()
         }
     }
 

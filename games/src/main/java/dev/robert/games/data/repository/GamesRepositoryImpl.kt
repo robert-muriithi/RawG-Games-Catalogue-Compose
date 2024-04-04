@@ -51,7 +51,7 @@ class GamesRepositoryImpl(
         ).flow.map { pagingData ->
             pagingData.map { it.toDomain() }
         }
-        return pager.flowOn(Dispatchers.IO)
+        return pager
     }
 
 
@@ -171,38 +171,17 @@ class GamesRepositoryImpl(
 
     override fun bookMarkGame(id: Int, isBookMarked: Boolean): Flow<Resource<Boolean>> = flow {
         try {
+//            val remoteKey = appDb.remoteKeyDao().getKeyByGame("_game")
             val game = appDb.gameEntityDao().getGameById(id)
             val updatedGame = game.copy(isBookMarked = isBookMarked)
-            appDb.gameEntityDao().updateBookmark(id = id, bookmarked = !game.isBookMarked)
-            emit(Resource.Success(!game.isBookMarked))
+            appDb.gameEntityDao().updateBookmark(id = id, bookmarked = isBookMarked)
+            emit(Resource.Success(updatedGame.isBookMarked))
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
     }
 
-    /* override fun getHotGames(): Flow<PagingData<GamesResultModel>> {
-        val cachedGames =  {
-            appDb.gameEntityDao().getAllGames()
-        }
-        val gamesRemoteMediator = GamesRemoteMediator(
-            appDb = appDb,
-            apiService = gamesApi,
-            dateRange = getDateRange(range = Range.MONTH, isPast = true),
-            ordering = "-rating"
-        )
-        val pager = Pager(
-            config = PagingConfig(
-                pageSize = 10,
-                maxSize = 10 + (10 * 2),
-                enablePlaceholders = false
-            ),
-            remoteMediator = gamesRemoteMediator,
-            pagingSourceFactory = cachedGames
-        ).flow.map { pagingData ->
-            pagingData.map { it.toDomain() }
-        }
-        return pager.flowOn(Dispatchers.IO)
-    }*/
+
 
 
     companion object {

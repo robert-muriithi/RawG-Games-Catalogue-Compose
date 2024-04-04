@@ -98,16 +98,16 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeScreenViewModel = hiltViewModel(),
     navController: NavController,
 ) {
+    val viewModel: HomeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
+
     val genresState = viewModel.genresState.value
     val gamesState = viewModel.gamesState.value
     val hotGamesState = viewModel.hotGamesState.value
     val games = gamesState.data?.collectAsLazyPagingItems()
     val genres = genresState.data?.collectAsLazyPagingItems()
     val hotGames = hotGamesState.data
-
 
     val verticalGridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
@@ -116,12 +116,9 @@ fun HomeScreen(
         viewModel.setNavController(navController)
     })
 
-    val isBookMarked = remember {
-        mutableStateOf(false)
-    }
 
     val pullToRefreshState = rememberPullToRefreshState()
-    LaunchedEffect(key1 = pullToRefreshState, block = {
+    /*LaunchedEffect(key1 = pullToRefreshState, block = {
         when (pullToRefreshState.isRefreshing) {
             true -> {
                 viewModel.getHotGames(refresh = true)
@@ -132,7 +129,7 @@ fun HomeScreen(
                 viewModel.getHotGames(refresh = false)
             }
         }
-    })
+    })*/
 
     val showScrollToTopButton by remember {
         derivedStateOf {
@@ -245,7 +242,8 @@ fun GamesWidget(
         }
     }
 
-    Box(/*modifier = modifier.nestedScroll(nestedScrollConnection)*/) {
+    Box( modifier = modifier
+    /*modifier = modifier.nestedScroll(nestedScrollConnection)*/) {
         LazyGames(
             lazyGames = games,
             hotGames = hotGames,
@@ -256,8 +254,7 @@ fun GamesWidget(
             onNavigateToSearch = onNavigateToSearch,
             onRefresh = onRefresh,
             lazyListState = lazyListState,
-            onBookMark = onBookMark
-            // contentPaddingValues = PaddingValues(bottom = if (toolbarState is FixedScrollFlagState) MinToolbarHeight else 0.dp)
+            onBookMark = onBookMark,
         )
         /*HomeCollapsibleToolbar(
             backgroundImageResId = dev.robert.shared.R.drawable.ic_android_black_24dp,

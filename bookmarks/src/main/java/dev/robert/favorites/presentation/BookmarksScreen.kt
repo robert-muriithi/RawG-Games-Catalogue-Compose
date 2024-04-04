@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -130,12 +131,16 @@ fun BoxScope.BookmarksLoadingComponent(
     uiState: BookmarkScreenState
 ) {
     if (uiState.isLoading) {
-
+        CircularProgressIndicator(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .testTag("BookmarksLoadingComponent")
+        )
     }
 }
 
 @Composable
-fun BoxScope.BookMarksSuccessStateComponent(
+fun BookMarksSuccessStateComponent(
     uiState: BookmarkScreenState,
     onDeleteBookMark: (Int, Boolean) -> Unit,
     onClearBookMarks: () -> Unit,
