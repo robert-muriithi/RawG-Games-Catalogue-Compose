@@ -12,7 +12,6 @@ import dev.robert.games.data.mappers.toEntity
 import dev.robert.network.apiservice.GamesApi
 import retrofit2.HttpException
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
 class GamesRemoteMediator(
@@ -86,7 +85,17 @@ class GamesRemoteMediator(
            return MediatorResult.Error(e)
         }
     }
+    override suspend fun initialize(): InitializeAction {
+        return if(appDb.gameEntityDao().isTableEmpty() == 0) {
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        } else {
+            InitializeAction.SKIP_INITIAL_REFRESH
+        }
+    }
 
+    /*override suspend fun initialize(): InitializeAction {
+        return InitializeAction.SKIP_INITIAL_REFRESH
+    }*/
     /*override suspend fun initialize(): InitializeAction {
         val remoteKey = appDb.withTransaction {
             remoteKeyDao.getKeyByGame("_game")

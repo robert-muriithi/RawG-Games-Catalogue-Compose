@@ -6,13 +6,10 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import dev.robert.database.database.GamesDatabase
-import dev.robert.database.entities.GameEntity
 import dev.robert.database.entities.GenreEntity
 import dev.robert.database.entities.RemoteKey
 import dev.robert.games.data.mappers.toEntity
-import dev.robert.games.data.mappers.toGenresDomain
 import dev.robert.network.apiservice.GamesApi
-import dev.robert.network.dto.dto.category.GenreResponse
 import retrofit2.HttpException
 import java.io.IOException
 
