@@ -171,6 +171,7 @@ fun NavigationGraph(navController: NavHostController) {
             gameId?.let { it1 ->
                 GameDetailsScreen(
                     gameId = it1,
+                    navController = navController
                 )
             }
         }
