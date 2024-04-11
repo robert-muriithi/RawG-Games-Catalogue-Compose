@@ -8,6 +8,7 @@ import androidx.navigation.NavController
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.robert.datastore.domain.usecase.ThemeUseCase
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.genre.Genre
 import dev.robert.games.domain.usecase.BookMarkGameUseCase
@@ -19,8 +20,10 @@ import dev.robert.navigation.navigation.Destinations
 import dev.robert.network.Resource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,6 +33,7 @@ class HomeScreenViewModel @Inject constructor(
     private val getGenresUseCase: GetGenresUseCase,
     private val getHotGamesUseCase: GetHotGamesUseCase,
     private val bookMarkGameUseCase: BookMarkGameUseCase,
+    private val themeUseCase: ThemeUseCase
 ) : ViewModel() {
 
     private val _selectedCategory = mutableStateOf("All")
@@ -37,6 +41,13 @@ class HomeScreenViewModel @Inject constructor(
 
     private val event = mutableStateOf<HomeScreenEvent?>(null)
     val currentEvent: State<HomeScreenEvent?> = event
+
+    val theme = themeUseCase.getTheme()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0,
+        )
 
     fun setCategory(value: String) {
         _selectedCategory.value = value
@@ -74,6 +85,16 @@ class HomeScreenViewModel @Inject constructor(
                 bookmarkGame(event.id, event.isBookMarked)
             }
 
+            is HomeScreenEvent.ToggleTheme -> {
+                toggleTheme(event.themeValue)
+            }
+
+        }
+    }
+
+    private fun toggleTheme(themeValue: Int) {
+        viewModelScope.launch {
+            themeUseCase.saveTheme(themeValue)
         }
     }
 
@@ -169,9 +190,9 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            async { getHotGames(false) }.await()
             async { getGamesGenres() }.await()
             async { getGames() }.await()
-            async { getHotGames(false) }.await()
         }
     }
 

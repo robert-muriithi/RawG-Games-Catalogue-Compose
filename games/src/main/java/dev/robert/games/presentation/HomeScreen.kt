@@ -39,7 +39,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +55,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +79,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
@@ -99,8 +103,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     navController: NavController,
+    viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
-    val viewModel: HomeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
 
     val genresState = viewModel.genresState.value
     val gamesState = viewModel.gamesState.value
@@ -108,6 +112,7 @@ fun HomeScreen(
     val games = gamesState.data?.collectAsLazyPagingItems()
     val genres = genresState.data?.collectAsLazyPagingItems()
     val hotGames = hotGamesState.data
+    val theme = viewModel.theme.collectAsStateWithLifecycle()
 
     val verticalGridState = rememberLazyGridState()
     val scope = rememberCoroutineScope()
@@ -192,10 +197,15 @@ fun HomeScreen(
                 viewModel.onEvent(
                     HomeScreenEvent.BookMarkGame(id, bookmarked)
                 )
+            },
+            theme = theme.value,
+            onToggleTheme = { themeValue ->
+                viewModel.onEvent(
+                    HomeScreenEvent.ToggleTheme(themeValue)
+                )
             }
         )
     }
-
 }
 
 @Composable
@@ -223,7 +233,9 @@ fun GamesWidget(
     onNavigateToSearch: () -> Unit,
     onRefresh: () -> Unit,
     lazyListState: LazyListState,
-    onBookMark : (Int, Boolean) -> Unit
+    onBookMark : (Int, Boolean) -> Unit,
+    theme: Int,
+    onToggleTheme: (Int) -> Unit
 ) {
     val toolbarHeightRange = with(LocalDensity.current) {
         MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
@@ -255,6 +267,8 @@ fun GamesWidget(
             onRefresh = onRefresh,
             lazyListState = lazyListState,
             onBookMark = onBookMark,
+            theme = theme,
+            onToggleTheme = onToggleTheme
         )
         /*HomeCollapsibleToolbar(
             backgroundImageResId = dev.robert.shared.R.drawable.ic_android_black_24dp,
@@ -286,6 +300,8 @@ fun LazyGames(
     onRefresh: () -> Unit,
     lazyListState: LazyListState,
     onBookMark: (Int, Boolean) -> Unit,
+    theme: Int,
+    onToggleTheme: (Int) -> Unit
 ) {
     val contentPadding = PaddingValues(8.dp)
     var showColumn by remember {
@@ -316,7 +332,9 @@ fun LazyGames(
                         games = hotGames,
                         onGameSelected = onGameSelected,
                         modifier = Modifier.fillMaxWidth(),
-                        onNavigateToSearch = onNavigateToSearch
+                        onNavigateToSearch = onNavigateToSearch,
+                        theme= theme,
+                        onToggleTheme = onToggleTheme
                     )
                 }
                 item(
@@ -412,7 +430,9 @@ fun LazyGames(
                         games = hotGames,
                         onGameSelected = onGameSelected,
                         modifier = Modifier.fillMaxWidth(),
-                        onNavigateToSearch = onNavigateToSearch
+                        onNavigateToSearch = onNavigateToSearch,
+                        theme = theme,
+                        onToggleTheme = onToggleTheme
                     )
                 }
                 item {
@@ -491,6 +511,8 @@ fun HotGames(
     modifier: Modifier = Modifier,
     onGameSelected: (Int) -> Unit,
     onNavigateToSearch: () -> Unit,
+    theme: Int,
+    onToggleTheme: (Int) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = {
         games?.size ?: 0
@@ -520,7 +542,9 @@ fun HotGames(
             )
             ActionButtons(
                 onNavigateToSearch = onNavigateToSearch,
-                modifier = Modifier
+                modifier = Modifier,
+                theme = theme,
+                onToggleTheme = onToggleTheme
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
@@ -562,7 +586,13 @@ fun HotGames(
 fun ActionButtons(
     onNavigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
+    theme: Int,
+    onToggleTheme: (Int) -> Unit
 ) {
+    var isDarkMode by remember {
+        mutableStateOf(false)
+    }
+
     Row(
         modifier = modifier
     ) {
@@ -575,10 +605,15 @@ fun ActionButtons(
             )
         }
         IconButton(
-            onClick = {}
+            onClick = {
+                isDarkMode = isDarkMode.not()
+                onToggleTheme(
+                    if (isDarkMode) 1 else 0
+                )
+            }
         ) {
             Icon(
-                imageVector = Icons.Default.FilterList,
+                imageVector = if (isDarkMode) Icons.Filled.WbSunny else Icons.Outlined.WbSunny,
                 contentDescription = null
             )
         }
@@ -721,51 +756,3 @@ fun TopBar(
     )
 }
 
-
-@Composable
-fun HeaderItem() {
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 6.dp
-            )
-        ) {
-            Image(
-                painter = painterResource(id = android.R.drawable.arrow_down_float),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                contentScale = ContentScale.Crop
-            )
-        }
-    }
-}
-
-@Composable
-fun BookMarkButton(onclick: () -> Unit) {
-    val clicked = remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
-    ) {
-        IconButton(
-            onClick = {
-                onclick()
-                clicked.value = !clicked.value
-            }) {
-            Icon(
-                imageVector = clicked.value.let {
-                    if (it) Icons.Outlined.ShoppingCart else Icons.Default.ShoppingCart
-                },
-                contentDescription = "Add to cart",
-                modifier = Modifier
-                    .height(14.dp)
-
-            )
-        }
-    }
-}
