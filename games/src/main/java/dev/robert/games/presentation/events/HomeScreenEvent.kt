@@ -11,4 +11,6 @@ sealed class HomeScreenEvent {
     data class NavigateToCategory(val category: String) : HomeScreenEvent()
 
     data class BookMarkGame(val id: Int, val isBookMarked: Boolean) : HomeScreenEvent()
+
+    data class ToggleTheme(val themeValue: Int) : HomeScreenEvent()
 }

@@ -86,11 +86,7 @@ class GamesRemoteMediator(
         }
     }
     override suspend fun initialize(): InitializeAction {
-        return if(appDb.gameEntityDao().isTableEmpty() == 0) {
-            InitializeAction.LAUNCH_INITIAL_REFRESH
-        } else {
-            InitializeAction.SKIP_INITIAL_REFRESH
-        }
+        return InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
     /*override suspend fun initialize(): InitializeAction {

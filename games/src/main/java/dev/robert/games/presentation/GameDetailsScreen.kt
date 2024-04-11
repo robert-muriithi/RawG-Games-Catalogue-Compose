@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,8 +56,12 @@ import dev.robert.designsystem.presentation.CustomSnackBar
 import dev.robert.games.domain.model.game.GamesResultModel
 import dev.robert.games.domain.model.game_details.GameDetailsModel
 import dev.robert.designsystem.presentation.NetworkImage
+import dev.robert.games.presentation.components.GenresRow
+import dev.robert.games.presentation.components.RatingBar
 import dev.robert.games.presentation.events.GameDetailsEvents
 import dev.robert.navigation.navigation.Destinations
+import dev.robert.shared.utils.ConverterDate
+import dev.robert.shared.utils.convertDateTo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -89,7 +94,13 @@ fun GameDetailsScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        GameDetailsComponent(game = game, event = viewModel::onEvent, gameState = gameState)
+        GameDetailsComponent(
+            game = game,
+            event = viewModel::onEvent,
+            gameState = gameState,
+            onBookmark = { id, bookmarked ->
+                viewModel.onEvent(GameDetailsEvents.BookmarkGame(id, bookmarked))
+            })
     }
 }
 
@@ -98,6 +109,7 @@ fun GameDetailsComponent(
     gameState: UIState<GameDetailsModel>,
     game: GamesResultModel?,
     event: (GameDetailsEvents) -> Unit,
+    onBookmark: (Int, Boolean) -> Unit,
 ) {
     Scaffold(content = { paddingValues ->
         Box(
@@ -112,7 +124,12 @@ fun GameDetailsComponent(
             LoadingComponent(gameState = gameState)
 
             // Success
-            SuccessComponent(gameState = gameState, game = game, event = event)
+            SuccessComponent(
+                gameState = gameState,
+                game = game,
+                event = event,
+                onBookmark = onBookmark
+            )
 
             // Empty
 //            EmptyComponent(gameState = gameState)
@@ -159,9 +176,15 @@ fun SuccessComponent(
     gameState: UIState<GameDetailsModel>,
     game: GamesResultModel?,
     event: (GameDetailsEvents) -> Unit,
+    onBookmark: (Int, Boolean) -> Unit,
 ) {
     if (gameState.data != null && gameState.isLoading.not() && gameState.error.isNullOrEmpty()) {
-        GameDetailsContent(game = game, gameDetails = gameState.data, event = event)
+        GameDetailsContent(
+            game = game,
+            gameDetails = gameState.data,
+            event = event,
+            onBookMark = onBookmark
+        )
     }
 }
 
@@ -170,14 +193,171 @@ fun GameDetailsContent(
     game: GamesResultModel?,
     gameDetails: GameDetailsModel,
     event: (GameDetailsEvents) -> Unit,
+    onBookMark: (Int, Boolean) -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    var savedState by remember {
+        mutableStateOf(game?.isBookMarked ?: false)
+    }
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        GameDetailsHeader(game = game, gameDetails = gameDetails, event = event)
+
+        game?.let { game ->
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy((-30).dp),
+            ) {
+                GameDetailsHeader(game = game, gameDetails = gameDetails, event = event)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                        .background(Color.White)
+                        .padding(24.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = game.name ?: "",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1F)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Icon(
+                            imageVector = if (savedState) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(top = 4.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = rememberRipple(bounded = false),
+                                    onClick = {
+                                        savedState = !savedState
+                                        onBookMark(game.id!!, savedState)
+                                        if (savedState) Toast
+                                            .makeText(
+                                                context,
+                                                "Bookmarked",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
+                                    }
+                                )
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(36.dp)
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Metascore",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.secondary)
+                                ) {
+                                    Text(
+                                        text = if (game.metacritic != 0) game.metacritic.toString() else "-",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            }
+                            Column {
+                                Text(
+                                    text = "Rating",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                RatingBar(
+                                    rating = game.rating ?: 0.0,
+                                    modifier = Modifier
+                                        .height(16.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.spacedBy(40.dp)
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Released",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                game.released?.let {
+                                    Text(
+                                        text = it.convertDateTo(ConverterDate.FULL_DATE),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                            Column {
+                                Text(
+                                    text = "Genre",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                GenresRow(
+                                    game = game,
+                                    modifier = Modifier
+                                        .padding(2.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.5f),
+                                            MaterialTheme.shapes.small
+                                        )
+                                        .padding(4.dp)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "Description",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    gameDetails.description?.let {
+                        Text(
+                            text = it.ifBlank { "-" },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+            }
+            /*state.shareSheetGame?.let {
+                viewModel.onEvent(DetailScreenEvent.ShareGame(dismissed = true))
+            }*/
+        }
     }
 }
 
@@ -338,35 +518,35 @@ fun GameDetailsHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = rememberRipple(bounded = false),
-                            onClick = {
-                                event(GameDetailsEvents.NavigateToHome(Destinations.HomeScreen.route))
-                            }
-                        )
-                )
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = rememberRipple(bounded = false),
-                            onClick = {
-                                event(GameDetailsEvents.ShareGame(game?.name ?: ""))
-                            }
-                        )
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(bounded = false),
+                        onClick = {
+                            event(GameDetailsEvents.NavigateToHome(Destinations.HomeScreen.route))
+                        }
+                    )
+            )
+            Icon(
+                imageVector = Icons.Filled.Share,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(bounded = false),
+                        onClick = {
+                            event(GameDetailsEvents.ShareGame(game?.name ?: ""))
+                        }
+                    )
 
-                )
+            )
 
         }
         /*Column(
