@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.robert.games.domain.model.game_details.GameDetailsModel
 import dev.robert.games.domain.usecase.BookMarkGameUseCase
@@ -40,9 +41,13 @@ class GameDetailsViewModel @Inject constructor(
 
     private val _eventsFlow = MutableSharedFlow<GameDetailsEvents>()
     val eventsFlow = _eventsFlow
-
+    private lateinit var navController: NavController
 
     fun getLocalGame(id: Int) = getLocalGameUseCase(id)
+
+    fun setNavController(navController: NavController) {
+        this.navController = navController
+    }
 
 
     fun getGameDetails(id: Int) {
@@ -80,6 +85,7 @@ class GameDetailsViewModel @Inject constructor(
             is GameDetailsEvents.ErrorEvent -> _eventsFlow.tryEmit(event)
             is GameDetailsEvents.RetryEvent -> getGameDetails(event.id)
             is GameDetailsEvents.RefreshEvent -> getGameDetails(event.id)
+            is GameDetailsEvents.NavigateBack -> navController.navigateUp()
         }
     }
 

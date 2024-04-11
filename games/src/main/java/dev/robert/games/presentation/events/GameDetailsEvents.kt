@@ -14,6 +14,8 @@ sealed class GameDetailsEvents {
         val url: String
     ) : GameDetailsEvents()
 
+    data object NavigateBack : GameDetailsEvents()
+
     data class ShareGame(
         val game: String
     ) : GameDetailsEvents()
