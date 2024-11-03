@@ -4,8 +4,9 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.ksp)
-    kotlin("plugin.serialization") version "1.9.0"
+    kotlin("plugin.serialization") version "2.0.20"
     alias(libs.plugins.hiltAndroid)
+    alias(libs.plugins.compose.compiler)
 }
 apply {
     from("$rootDir/core-dependencies.gradle")
@@ -16,7 +17,7 @@ apply {
 apply {
     from("$rootDir/compose-dependencies.gradle")
 }
-val properties = gradleLocalProperties(rootDir)
+val properties = gradleLocalProperties(rootDir, providers)
 android {
     namespace = "dev.robert.network"
     compileSdk = 34
@@ -44,23 +45,22 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
-    }
-    kotlin {
-        jvmToolchain(11)
-    }
-    buildFeatures {
-        buildConfig = true
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+    buildFeatures {
+        buildConfig = true
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 

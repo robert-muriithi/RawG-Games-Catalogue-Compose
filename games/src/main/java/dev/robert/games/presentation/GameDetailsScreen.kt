@@ -22,7 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Share
@@ -448,8 +448,6 @@ fun ImageSlider(game: GamesResultModel?) {
                         .size(32.dp)
                         .padding(top = 4.dp)
                         .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = rememberRipple(bounded = false),
                             onClick = {
                                 game?.id
                                     ?.let {
@@ -518,7 +516,7 @@ fun GameDetailsHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier

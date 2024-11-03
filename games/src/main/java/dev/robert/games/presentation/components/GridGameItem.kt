@@ -88,7 +88,7 @@ fun GameItem(
                         onBookMark(game.id!!, isBookMarked)
                 }) {
                     Image(
-                        painter = painterResource(id = if (isBookMarked == true) {
+                        painter = painterResource(id = if (isBookMarked) {
                             dev.robert.shared.R.drawable.bookmark_filled
                         } else {
                             dev.robert.shared.R.drawable.bookmark_outline
