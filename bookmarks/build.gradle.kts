@@ -3,8 +3,9 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
-    alias(libs.plugins.ksp) version "1.9.20-1.0.14"
-    kotlin("plugin.serialization") version "1.9.0"
+    alias(libs.plugins.ksp)
+    kotlin("plugin.serialization") version "2.0.20"
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hiltAndroid)
 }
 apply {
@@ -16,7 +17,7 @@ apply {
 apply {
     from("$rootDir/compose-dependencies.gradle")
 }
-val properties = gradleLocalProperties(rootDir)
+val properties = gradleLocalProperties(rootDir, providers)
 android {
     namespace = "dev.robert.bookmarks"
     compileSdk = 34
@@ -44,14 +45,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
-    }
-    kotlin {
-        jvmToolchain(11)
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -59,8 +57,10 @@ android {
     buildFeatures {
         buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 

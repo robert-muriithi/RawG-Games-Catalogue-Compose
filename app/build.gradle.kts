@@ -4,7 +4,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.ksp)
-    kotlin("plugin.serialization") version "1.9.0"
+    alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "2.0.20"
     alias(libs.plugins.hiltAndroid)
     id("kotlin-parcelize")
 }
@@ -18,7 +19,7 @@ apply {
 apply {
     from("$rootDir/compose-dependencies.gradle")
 }
-val properties = gradleLocalProperties(rootDir)
+val properties = gradleLocalProperties(rootDir, providers)
 
 android {
     namespace = "dev.robert.gametrail"
@@ -45,25 +46,25 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            buildConfigField("String", "BASE_URL", "\"https://api.rawg.io/api/\"")
+            buildConfigField("String", "API_KEY", properties.getProperty("API_KEY"))
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+        }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
-    }
-    kotlin {
-        jvmToolchain(11)
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
     buildFeatures {
         buildConfig = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
     }
     packaging {
         resources {
